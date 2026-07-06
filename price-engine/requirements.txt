@@ -1,0 +1,9 @@
+# StockXchange Price & News Engine dependencies
+# Pinned to compatible minimum versions; upgrade deliberately.
+
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+pydantic>=2.7,<3.0
+numpy>=1.26
+pandas>=2.2
+python-dotenv>=1.0
