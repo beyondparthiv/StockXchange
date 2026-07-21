@@ -58,6 +58,59 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------
+-- Auto-create a profile row on first login (Phase 1)
+-- A trigger on auth.users guarantees every new user gets a public.profiles
+-- row regardless of sign-up method (email, Google, phone). Runs as SECURITY
+-- DEFINER so it can insert past RLS. display_name/avatar are pulled from the
+-- auth metadata Supabase stores (Google fills full_name/avatar_url; email
+-- signup passes display_name via options.data).
+-- ---------------------------------------------------------------------
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.profiles (id, display_name, avatar_url)
+  values (
+    new.id,
+    coalesce(
+      new.raw_user_meta_data ->> 'display_name',
+      new.raw_user_meta_data ->> 'full_name',
+      new.raw_user_meta_data ->> 'name',
+      split_part(coalesce(new.email, ''), '@', 1),
+      'Trader'
+    ),
+    new.raw_user_meta_data ->> 'avatar_url'
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Keep profiles.updated_at fresh on every update.
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_touch_updated_at on public.profiles;
+create trigger profiles_touch_updated_at
+  before update on public.profiles
+  for each row execute function public.touch_updated_at();
+
+-- ---------------------------------------------------------------------
 -- Realtime
 -- Supabase Realtime broadcasts row changes over WebSocket channels. We add
 -- tables to the `supabase_realtime` publication as we create them. Lobby and

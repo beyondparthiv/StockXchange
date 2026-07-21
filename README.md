@@ -86,13 +86,39 @@ The Postgres schema is tracked in [`supabase/schema.sql`](supabase/schema.sql).
 Paste it into the Supabase SQL editor to provision tables. It grows one section
 per phase.
 
+## Auth setup (Phase 1)
+
+The app runs without Supabase (you'll see "configure Supabase" notices). To
+enable auth:
+
+1. **Create a Supabase project** at [supabase.com](https://supabase.com). From
+   **Project Settings → API**, copy the *Project URL* and the *anon public* key
+   into `.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`),
+   and the *service_role* key into `SUPABASE_SERVICE_ROLE_KEY`. Restart `npm run dev`.
+2. **Run the schema.** Paste [`supabase/schema.sql`](supabase/schema.sql) into
+   Supabase Studio → SQL Editor and run it. This creates `profiles` and the
+   trigger that auto-creates a profile row on first login.
+3. **Email/password** works immediately. For frictionless local testing, disable
+   *"Confirm email"* under **Authentication → Providers → Email** (otherwise a
+   confirmation email must be clicked before login).
+4. **Google OAuth** — create OAuth credentials in Google Cloud Console, then
+   under **Authentication → Providers → Google** paste the client ID/secret.
+   Add `https://<project-ref>.supabase.co/auth/v1/callback` as an authorized
+   redirect URI in Google Cloud.
+5. **Phone OTP** — under **Authentication → Providers → Phone**, connect an SMS
+   provider (e.g. Twilio) and enter its credentials. Without an SMS provider,
+   phone login will return a provider error (expected).
+
+Routes: `/login`, `/signup`, `/forgot-password`, `/reset-password`. Any other
+route redirects to `/login` when logged out (handled by `src/proxy.ts`).
+
 ## Project status
 
 Built **phase by phase** — each phase is completed and verified before the next
 begins.
 
 - [x] **Phase 0** — Project scaffolding (Next.js + FastAPI + Supabase config, health ping)
-- [ ] Phase 1 — Authentication
+- [x] **Phase 1** — Authentication (Google, phone OTP, email/password, forgot-password, profile on first login)
 - [ ] Phase 2 — Home / mode selection
 - [ ] Phase 3 — Profile & settings
 - [ ] Phase 4 — Lobby & room system
