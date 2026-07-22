@@ -1,26 +1,99 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+  StockXchange — "Vintage board-game" theme
+  ------------------------------------------
+  Warm parchment paper, deep navy ink, classic red/green, and gold leaf.
+  Reads like a classic board-game box. Trade-action colors (green = buy,
+  red = sell/short) are drawn from the same classic palette, so the game
+  screen (Phase 5) stays on-brand without breaking the "color has one
+  meaning" rule.
+*/
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Surfaces */
+  --color-parchment: #f0e4c8; /* page background */
+  --color-cream: #fbf4e1; /* cards / raised surfaces */
+  --color-cream-soft: #f5ead0; /* subtle fills, inputs */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Ink */
+  --color-ink: #22314f; /* primary text + navy chrome */
+  --color-ink-soft: #6f6750; /* muted text (warm sepia) */
+  --color-navy: #1b2640; /* darkest chrome (header banner) */
+
+  /* Accents */
+  --color-gold: #b8912a; /* gold leaf — borders, badges, CTAs */
+  --color-gold-bright: #d9b641;
+  --color-classic-red: #b64226; /* sell / short / danger */
+  --color-classic-green: #2f7d51; /* buy / success */
+
+  /* Fonts (wired to next/font variables in layout.tsx) */
+  --font-display: var(--ff-display), Georgia, "Times New Roman", serif;
+  --font-sans: var(--ff-body), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-parchment);
+  /* Warm highlight from the top, gentle vignette at the edges. */
+  background-image:
+    radial-gradient(
+      1100px 700px at 50% -12%,
+      rgba(255, 250, 235, 0.7),
+      transparent 60%
+    ),
+    radial-gradient(
+      1400px 900px at 50% 120%,
+      rgba(120, 96, 40, 0.1),
+      transparent 55%
+    );
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Fine paper grain overlay — sits behind content, never intercepts clicks. */
+.paper-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-size: 160px 160px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Display serif helper. */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* A small centered ornament divider: — ◆ — */
+.rule-ornament {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-gold);
+}
+.rule-ornament::before,
+.rule-ornament::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 55%, transparent),
+    transparent
+  );
+}
+
+/* Value flash used later when wallet/portfolio numbers change (Phase 5). */
+@keyframes value-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--color-gold-bright) 40%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
 }

@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Display: Fraunces — a characterful high-contrast serif for a classic,
+// board-game feel. Body: Nunito Sans — warm, friendly, and very readable.
+const display = Fraunces({
+  variable: "--ff-display",
   subsets: ["latin"],
+  style: ["normal", "italic"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const body = Nunito_Sans({
+  variable: "--ff-body",
   subsets: ["latin"],
 });
 
@@ -25,9 +28,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="relative min-h-full flex flex-col">
+        <div className="paper-grain" aria-hidden="true" />
+        {children}
+      </body>
     </html>
   );
 }

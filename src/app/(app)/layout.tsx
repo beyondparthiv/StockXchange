@@ -20,23 +20,25 @@ export default async function AppLayout({
 }) {
   if (!isSupabaseConfigured()) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-950 px-6 py-16 text-zinc-100">
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-16">
         <div className="w-full max-w-md text-center">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Stock<span className="text-emerald-400">Xchange</span>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">
+            Stock<span className="text-gold">Xchange</span>
           </h1>
-          <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-5 text-left text-sm text-amber-200">
-            <p className="font-semibold">Supabase isn&apos;t configured yet.</p>
-            <p className="mt-2 text-amber-200/80">
+          <div className="mt-6 rounded-xl border border-gold/40 bg-cream p-5 text-left text-sm text-ink shadow-[0_16px_40px_-18px_rgba(120,90,30,0.45)]">
+            <p className="font-semibold text-classic-red">
+              Supabase isn&apos;t configured yet.
+            </p>
+            <p className="mt-2 text-ink-soft">
               Add your project URL and anon key to{" "}
-              <code className="rounded bg-black/40 px-1">.env.local</code> and
+              <code className="rounded bg-cream-soft px-1">.env.local</code> and
               restart the dev server. See the README for setup.
             </p>
           </div>
           <p className="mt-6 text-sm">
             <Link
               href="/status"
-              className="text-emerald-400 hover:text-emerald-300"
+              className="font-semibold text-gold hover:text-gold-bright"
             >
               View service status →
             </Link>
@@ -66,7 +68,7 @@ export default async function AppLayout({
     "Trader";
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-950 text-zinc-100">
+    <div className="relative z-10 flex flex-1 flex-col">
       <AppHeader displayName={displayName} avatarUrl={profile?.avatar_url} />
       <div className="flex flex-1 flex-col">{children}</div>
     </div>

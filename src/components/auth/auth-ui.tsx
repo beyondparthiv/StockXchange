@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 /**
- * Presentational building blocks shared across the auth pages, so login,
- * signup, and the password flows all look identical without copy-pasting
- * Tailwind classes. Purely visual — state lives in the pages.
+ * Presentational building blocks shared across the auth pages. Vintage
+ * board-game theme: cream cards on parchment, gold hairlines, navy ink, and a
+ * Fraunces serif for titles.
  */
 
 export function AuthShell({
@@ -19,24 +19,27 @@ export function AuthShell({
   footer?: ReactNode;
 }) {
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-950 px-6 py-16 text-zinc-100">
+    <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
-            Stock<span className="text-emerald-400">Xchange</span>
+          <Link
+            href="/"
+            className="font-display text-3xl font-semibold tracking-tight text-ink"
+          >
+            Stock<span className="text-gold">Xchange</span>
           </Link>
-          <h1 className="mt-6 text-xl font-semibold">{title}</h1>
-          {subtitle && (
-            <p className="mt-1 text-sm text-zinc-400">{subtitle}</p>
-          )}
+          <h1 className="font-display mt-6 text-2xl font-semibold text-ink">
+            {title}
+          </h1>
+          {subtitle && <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="rounded-2xl border border-gold/40 bg-cream p-6 shadow-[0_16px_40px_-18px_rgba(120,90,30,0.45)]">
           {children}
         </div>
 
         {footer && (
-          <p className="mt-6 text-center text-sm text-zinc-400">{footer}</p>
+          <p className="mt-6 text-center text-sm text-ink-soft">{footer}</p>
         )}
       </div>
     </div>
@@ -49,12 +52,12 @@ export function Field({
 }: { label: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-zinc-300">
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
         {label}
       </span>
       <input
         {...props}
-        className="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20 disabled:opacity-50"
+        className="w-full rounded-lg border border-gold/30 bg-cream-soft px-3 py-2 text-sm text-ink placeholder-ink-soft/50 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/25 disabled:opacity-50"
       />
     </label>
   );
@@ -70,7 +73,7 @@ export function SubmitButton({
       {...props}
       type="submit"
       disabled={loading || props.disabled}
-      className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+      className="w-full rounded-lg border border-gold/60 bg-gold px-4 py-2.5 text-sm font-bold text-navy shadow-[0_2px_0_0_rgba(120,90,30,0.5)] transition hover:bg-gold-bright hover:shadow-[0_3px_0_0_rgba(120,90,30,0.5)] active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
     >
       {loading ? "Please wait…" : children}
     </button>
@@ -89,7 +92,7 @@ export function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/15 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2 rounded-lg border border-ink/15 bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-cream-soft disabled:cursor-not-allowed disabled:opacity-60"
     >
       <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -116,12 +119,10 @@ export function GoogleButton({
 
 export function Divider({ label }: { label: string }) {
   return (
-    <div className="my-5 flex items-center gap-3">
-      <div className="h-px flex-1 bg-white/10" />
-      <span className="text-xs uppercase tracking-wide text-zinc-500">
+    <div className="rule-ornament my-5">
+      <span className="text-xs uppercase tracking-widest text-gold">
         {label}
       </span>
-      <div className="h-px flex-1 bg-white/10" />
     </div>
   );
 }
@@ -135,24 +136,23 @@ export function Alert({
 }) {
   const styles =
     kind === "error"
-      ? "border-red-500/30 bg-red-500/10 text-red-300"
-      : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
+      ? "border-classic-red/40 bg-classic-red/10 text-classic-red"
+      : "border-classic-green/40 bg-classic-green/10 text-classic-green";
   return (
-    <div className={`rounded-lg border px-3 py-2 text-xs ${styles}`}>
+    <div className={`rounded-lg border px-3 py-2 text-xs font-medium ${styles}`}>
       {children}
     </div>
   );
 }
 
 /**
- * Shown across auth pages when Supabase credentials aren't configured yet, so
- * the user gets clear guidance instead of a broken form.
+ * Shown across auth pages when Supabase credentials aren't configured yet.
  */
 export function ConfigNotice() {
   return (
     <Alert kind="error">
       Supabase isn&apos;t configured yet. Add your project URL and anon key to{" "}
-      <code className="rounded bg-black/40 px-1">.env.local</code> and restart
+      <code className="rounded bg-cream-soft px-1">.env.local</code> and restart
       the dev server. See the README for setup steps.
     </Alert>
   );

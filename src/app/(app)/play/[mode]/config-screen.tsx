@@ -30,24 +30,48 @@ function Stepper({
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 text-lg text-zinc-200 transition hover:bg-white/5 disabled:opacity-40"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-gold/40 text-lg text-ink transition hover:bg-cream-soft disabled:opacity-40"
         aria-label="Decrease"
       >
         −
       </button>
-      <span className="w-10 text-center text-lg font-semibold tabular-nums">
+      <span className="w-10 text-center text-lg font-bold tabular-nums text-ink">
         {value}
       </span>
       <button
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 text-lg text-zinc-200 transition hover:bg-white/5 disabled:opacity-40"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-gold/40 text-lg text-ink transition hover:bg-cream-soft disabled:opacity-40"
         aria-label="Increase"
       >
         +
       </button>
     </div>
+  );
+}
+
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+        active
+          ? "border-gold bg-gold text-navy"
+          : "border-gold/30 text-ink hover:bg-cream-soft"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -61,10 +85,10 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-b border-white/5 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 border-b border-gold/15 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <div className="text-sm font-medium text-zinc-200">{label}</div>
-        {hint && <div className="text-xs text-zinc-500">{hint}</div>}
+        <div className="text-sm font-semibold text-ink">{label}</div>
+        {hint && <div className="text-xs text-ink-soft">{hint}</div>}
       </div>
       <div>{children}</div>
     </div>
@@ -84,7 +108,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   if (!mounted) {
     return (
       <main className="mx-auto w-full max-w-2xl px-4 py-12">
-        <div className="h-64 animate-pulse rounded-2xl border border-white/10 bg-white/[0.03]" />
+        <div className="h-64 animate-pulse rounded-2xl border border-gold/30 bg-cream" />
       </main>
     );
   }
@@ -94,26 +118,37 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   if (ready) {
     return (
       <main className="mx-auto w-full max-w-2xl px-4 py-12">
-        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/[0.06] p-6 text-center">
-          <h1 className="text-xl font-semibold">Game configured</h1>
-          <p className="mt-1 text-sm text-zinc-400">
+        <div className="rounded-2xl border border-gold/50 bg-cream p-6 text-center shadow-[0_16px_40px_-18px_rgba(120,90,30,0.45)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+            Ready to play
+          </p>
+          <h1 className="font-display mt-2 text-2xl font-semibold text-ink">
+            Game configured
+          </h1>
+          <p className="mt-1 text-sm text-ink-soft">
             {meta.label} · {config.days} Days · {rounds} Rounds
           </p>
 
           <dl className="mx-auto mt-6 grid max-w-sm grid-cols-2 gap-3 text-left text-sm">
-            <dt className="text-zinc-500">Starting cash</dt>
-            <dd className="text-right text-zinc-200">
+            <dt className="text-ink-soft">Starting cash</dt>
+            <dd className="text-right font-semibold text-ink">
               {formatINR(config.startingCash)}
             </dd>
-            <dt className="text-zinc-500">Companies</dt>
-            <dd className="text-right text-zinc-200">{config.companies}</dd>
-            <dt className="text-zinc-500">Round timer</dt>
-            <dd className="text-right text-zinc-200">
+            <dt className="text-ink-soft">Companies</dt>
+            <dd className="text-right font-semibold text-ink">
+              {config.companies}
+            </dd>
+            <dt className="text-ink-soft">Round timer</dt>
+            <dd className="text-right font-semibold text-ink">
               {config.roundTimerSec}s
             </dd>
           </dl>
 
-          <div className="mt-6 rounded-lg border border-white/10 bg-black/20 p-3 text-xs text-zinc-400">
+          <div className="rule-ornament mx-auto mt-6 max-w-xs">
+            <span className="text-gold">◆</span>
+          </div>
+
+          <div className="mt-4 rounded-lg border border-gold/30 bg-cream-soft p-3 text-xs text-ink-soft">
             {meta.nextStep}
           </div>
 
@@ -121,15 +156,15 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
             <button
               type="button"
               onClick={() => setReady(false)}
-              className="rounded-lg border border-white/15 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:bg-white/5"
+              className="rounded-lg border border-ink/20 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-cream-soft"
             >
               Change settings
             </button>
             <Link
               href="/"
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400"
+              className="rounded-lg border border-gold/60 bg-gold px-4 py-2 text-sm font-bold text-navy shadow-[0_2px_0_0_rgba(120,90,30,0.5)] transition hover:bg-gold-bright"
             >
-              Back to modes
+              Back to tables
             </Link>
           </div>
         </div>
@@ -142,15 +177,17 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
       <div className="mb-6">
         <Link
           href="/"
-          className="text-sm text-zinc-400 transition hover:text-zinc-100"
+          className="text-sm text-ink-soft transition hover:text-ink"
         >
-          ← Modes
+          ← Tables
         </Link>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">{meta.label}</h1>
-        <p className="mt-1 text-sm text-zinc-400">{meta.description}</p>
+        <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-ink">
+          {meta.label}
+        </h1>
+        <p className="mt-1 text-sm text-ink-soft">{meta.description}</p>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-2">
+      <div className="rounded-2xl border border-gold/40 bg-cream px-6 py-2 shadow-[0_12px_30px_-18px_rgba(120,90,30,0.5)]">
         <Row label="Days" hint={`${rounds} rounds total (2 per day)`}>
           <Stepper
             value={config.days}
@@ -162,23 +199,15 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
 
         <Row label="Starting cash" hint="Per player">
           <div className="flex flex-wrap gap-2">
-            {CASH_PRESETS.map((amount) => {
-              const active = config.startingCash === amount;
-              return (
-                <button
-                  key={amount}
-                  type="button"
-                  onClick={() => setConfig({ startingCash: amount })}
-                  className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
-                    active
-                      ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-200"
-                      : "border-white/15 text-zinc-300 hover:bg-white/5"
-                  }`}
-                >
-                  {shortINR(amount)}
-                </button>
-              );
-            })}
+            {CASH_PRESETS.map((amount) => (
+              <Chip
+                key={amount}
+                active={config.startingCash === amount}
+                onClick={() => setConfig({ startingCash: amount })}
+              >
+                {shortINR(amount)}
+              </Chip>
+            ))}
           </div>
         </Row>
 
@@ -193,23 +222,15 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
 
         <Row label="Round timer" hint="Seconds to place orders each round">
           <div className="flex flex-wrap gap-2">
-            {TIMER_OPTIONS.map((sec) => {
-              const active = config.roundTimerSec === sec;
-              return (
-                <button
-                  key={sec}
-                  type="button"
-                  onClick={() => setConfig({ roundTimerSec: sec })}
-                  className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
-                    active
-                      ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-200"
-                      : "border-white/15 text-zinc-300 hover:bg-white/5"
-                  }`}
-                >
-                  {sec}s
-                </button>
-              );
-            })}
+            {TIMER_OPTIONS.map((sec) => (
+              <Chip
+                key={sec}
+                active={config.roundTimerSec === sec}
+                onClick={() => setConfig({ roundTimerSec: sec })}
+              >
+                {sec}s
+              </Chip>
+            ))}
           </div>
         </Row>
       </div>
@@ -217,11 +238,11 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
       <button
         type="button"
         onClick={() => setReady(true)}
-        className="mt-6 w-full rounded-lg bg-emerald-500 px-4 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400"
+        className="mt-6 w-full rounded-lg border border-gold/60 bg-gold px-4 py-3 text-sm font-bold text-navy shadow-[0_2px_0_0_rgba(120,90,30,0.5)] transition hover:bg-gold-bright active:translate-y-px active:shadow-none"
       >
         {mode === "online" ? "Create room" : "Start game"}
       </button>
-      <p className="mt-2 text-center text-xs text-zinc-500">{meta.nextStep}</p>
+      <p className="mt-2 text-center text-xs text-ink-soft">{meta.nextStep}</p>
     </main>
   );
 }
