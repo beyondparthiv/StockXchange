@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { GAME_MODES, MODE_META, type GameMode } from "@/lib/game/config";
+import { JoinRoom } from "@/components/join-room";
 
 export const metadata = { title: "Play · StockXchange" };
 
@@ -110,7 +111,21 @@ export default function HomePage() {
         })}
       </div>
 
-      <div className="mt-10 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
+      <div className="mt-6 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h3 className="font-display text-lg font-bold text-ink">
+              Have a room code?
+            </h3>
+            <p className="mt-1 text-sm text-ink-soft">
+              Join a friend&apos;s game — no need to host.
+            </p>
+          </div>
+          <JoinRoom />
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h3 className="font-display text-lg font-bold text-ink">
