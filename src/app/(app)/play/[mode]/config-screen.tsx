@@ -30,7 +30,7 @@ function Stepper({
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-gold/40 text-lg text-ink transition hover:bg-cream-soft disabled:opacity-40"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ink/15 text-lg text-ink transition hover:bg-surface-2 disabled:opacity-40"
         aria-label="Decrease"
       >
         −
@@ -42,7 +42,7 @@ function Stepper({
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-gold/40 text-lg text-ink transition hover:bg-cream-soft disabled:opacity-40"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ink/15 text-lg text-ink transition hover:bg-surface-2 disabled:opacity-40"
         aria-label="Increase"
       >
         +
@@ -66,8 +66,8 @@ function Chip({
       onClick={onClick}
       className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
         active
-          ? "border-gold bg-gold text-navy"
-          : "border-gold/30 text-ink hover:bg-cream-soft"
+          ? "border-teal bg-teal text-white"
+          : "border-ink/15 text-ink hover:bg-surface-2"
       }`}
     >
       {children}
@@ -85,7 +85,7 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-b border-gold/15 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 border-b border-ink/10 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <div className="text-sm font-semibold text-ink">{label}</div>
         {hint && <div className="text-xs text-ink-soft">{hint}</div>}
@@ -108,7 +108,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   if (!mounted) {
     return (
       <main className="mx-auto w-full max-w-2xl px-4 py-12">
-        <div className="h-64 animate-pulse rounded-2xl border border-gold/30 bg-cream" />
+        <div className="h-64 animate-pulse rounded-2xl border border-ink/5 bg-surface" />
       </main>
     );
   }
@@ -118,11 +118,11 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   if (ready) {
     return (
       <main className="mx-auto w-full max-w-2xl px-4 py-12">
-        <div className="rounded-2xl border border-gold/50 bg-cream p-6 text-center shadow-[0_16px_40px_-18px_rgba(120,90,30,0.45)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+        <div className="rounded-2xl border border-ink/5 bg-surface p-6 text-center shadow-[0_18px_40px_-20px_rgba(13,59,55,0.45)]">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal">
             Ready to play
           </p>
-          <h1 className="font-display mt-2 text-2xl font-semibold text-ink">
+          <h1 className="font-display mt-2 text-2xl font-bold text-ink">
             Game configured
           </h1>
           <p className="mt-1 text-sm text-ink-soft">
@@ -144,11 +144,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
             </dd>
           </dl>
 
-          <div className="rule-ornament mx-auto mt-6 max-w-xs">
-            <span className="text-gold">◆</span>
-          </div>
-
-          <div className="mt-4 rounded-lg border border-gold/30 bg-cream-soft p-3 text-xs text-ink-soft">
+          <div className="mt-6 rounded-xl border border-ink/10 bg-surface-2 p-3 text-xs text-ink-soft">
             {meta.nextStep}
           </div>
 
@@ -156,13 +152,13 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
             <button
               type="button"
               onClick={() => setReady(false)}
-              className="rounded-lg border border-ink/20 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-cream-soft"
+              className="rounded-xl border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface-2"
             >
               Change settings
             </button>
             <Link
               href="/"
-              className="rounded-lg border border-gold/60 bg-gold px-4 py-2 text-sm font-bold text-navy shadow-[0_2px_0_0_rgba(120,90,30,0.5)] transition hover:bg-gold-bright"
+              className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-deep"
             >
               Back to tables
             </Link>
@@ -181,13 +177,13 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
         >
           ← Tables
         </Link>
-        <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-ink">
+        <h1 className="font-display mt-3 text-3xl font-extrabold tracking-tight text-ink">
           {meta.label}
         </h1>
         <p className="mt-1 text-sm text-ink-soft">{meta.description}</p>
       </div>
 
-      <div className="rounded-2xl border border-gold/40 bg-cream px-6 py-2 shadow-[0_12px_30px_-18px_rgba(120,90,30,0.5)]">
+      <div className="rounded-2xl border border-ink/5 bg-surface px-6 py-2 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
         <Row label="Days" hint={`${rounds} rounds total (2 per day)`}>
           <Stepper
             value={config.days}
@@ -238,7 +234,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
       <button
         type="button"
         onClick={() => setReady(true)}
-        className="mt-6 w-full rounded-lg border border-gold/60 bg-gold px-4 py-3 text-sm font-bold text-navy shadow-[0_2px_0_0_rgba(120,90,30,0.5)] transition hover:bg-gold-bright active:translate-y-px active:shadow-none"
+        className="mt-6 w-full rounded-xl bg-teal px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep active:translate-y-px"
       >
         {mode === "online" ? "Create room" : "Start game"}
       </button>

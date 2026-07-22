@@ -2,9 +2,8 @@ import Link from "next/link";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 /**
- * Presentational building blocks shared across the auth pages. Vintage
- * board-game theme: cream cards on parchment, gold hairlines, navy ink, and a
- * Fraunces serif for titles.
+ * Presentational building blocks shared across the auth pages. Mint & deep-teal
+ * theme: white cards on a mint canvas, teal primary actions, Poppins type.
  */
 
 export function AuthShell({
@@ -19,22 +18,22 @@ export function AuthShell({
   footer?: ReactNode;
 }) {
   return (
-    <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-16">
+    <div className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link
             href="/"
-            className="font-display text-3xl font-semibold tracking-tight text-ink"
+            className="font-display text-3xl font-extrabold tracking-tight text-ink"
           >
-            Stock<span className="text-gold">Xchange</span>
+            Stock<span className="text-teal">Xchange</span>
           </Link>
-          <h1 className="font-display mt-6 text-2xl font-semibold text-ink">
+          <h1 className="font-display mt-6 text-2xl font-bold text-ink">
             {title}
           </h1>
           {subtitle && <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>}
         </div>
 
-        <div className="rounded-2xl border border-gold/40 bg-cream p-6 shadow-[0_16px_40px_-18px_rgba(120,90,30,0.45)]">
+        <div className="rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_18px_40px_-20px_rgba(13,59,55,0.45)]">
           {children}
         </div>
 
@@ -52,12 +51,12 @@ export function Field({
 }: { label: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
+      <span className="mb-1.5 block text-xs font-semibold text-ink-soft">
         {label}
       </span>
       <input
         {...props}
-        className="w-full rounded-lg border border-gold/30 bg-cream-soft px-3 py-2 text-sm text-ink placeholder-ink-soft/50 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/25 disabled:opacity-50"
+        className="w-full rounded-xl border border-ink/10 bg-surface-2 px-3 py-2.5 text-sm text-ink placeholder-ink-soft/50 outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20 disabled:opacity-50"
       />
     </label>
   );
@@ -73,7 +72,7 @@ export function SubmitButton({
       {...props}
       type="submit"
       disabled={loading || props.disabled}
-      className="w-full rounded-lg border border-gold/60 bg-gold px-4 py-2.5 text-sm font-bold text-navy shadow-[0_2px_0_0_rgba(120,90,30,0.5)] transition hover:bg-gold-bright hover:shadow-[0_3px_0_0_rgba(120,90,30,0.5)] active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+      className="w-full rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
     >
       {loading ? "Please wait…" : children}
     </button>
@@ -92,7 +91,7 @@ export function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-2 rounded-lg border border-ink/15 bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-cream-soft disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-60"
     >
       <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -120,7 +119,7 @@ export function GoogleButton({
 export function Divider({ label }: { label: string }) {
   return (
     <div className="rule-ornament my-5">
-      <span className="text-xs uppercase tracking-widest text-gold">
+      <span className="text-xs font-semibold uppercase tracking-widest text-ink-soft">
         {label}
       </span>
     </div>
@@ -136,10 +135,10 @@ export function Alert({
 }) {
   const styles =
     kind === "error"
-      ? "border-classic-red/40 bg-classic-red/10 text-classic-red"
-      : "border-classic-green/40 bg-classic-green/10 text-classic-green";
+      ? "border-sell/30 bg-sell/10 text-sell"
+      : "border-buy/30 bg-buy/10 text-buy";
   return (
-    <div className={`rounded-lg border px-3 py-2 text-xs font-medium ${styles}`}>
+    <div className={`rounded-xl border px-3 py-2 text-xs font-medium ${styles}`}>
       {children}
     </div>
   );
@@ -152,7 +151,7 @@ export function ConfigNotice() {
   return (
     <Alert kind="error">
       Supabase isn&apos;t configured yet. Add your project URL and anon key to{" "}
-      <code className="rounded bg-cream-soft px-1">.env.local</code> and restart
+      <code className="rounded bg-surface-2 px-1">.env.local</code> and restart
       the dev server. See the README for setup steps.
     </Alert>
   );

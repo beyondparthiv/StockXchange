@@ -1,79 +1,71 @@
 @import "tailwindcss";
 
 /*
-  StockXchange — "Vintage board-game" theme
-  ------------------------------------------
-  Warm parchment paper, deep navy ink, classic red/green, and gold leaf.
-  Reads like a classic board-game box. Trade-action colors (green = buy,
-  red = sell/short) are drawn from the same classic palette, so the game
-  screen (Phase 5) stays on-brand without breaking the "color has one
-  meaning" rule.
+  StockXchange theme — "mint & deep teal"
+  ---------------------------------------
+  Clean, friendly, modern game UI: a pale mint canvas, white cards, deep-teal
+  chrome (header / order panel / sidebar), and green/red reserved for trade
+  actions and up/down movement. Modeled on the live game screen so the whole
+  app is cohesive with the trading floor (Phase 5).
 */
 
 @theme inline {
-  /* Surfaces */
-  --color-parchment: #f0e4c8; /* page background */
-  --color-cream: #fbf4e1; /* cards / raised surfaces */
-  --color-cream-soft: #f5ead0; /* subtle fills, inputs */
+  /* Canvas + surfaces */
+  --color-mint: #e9f5ec; /* page background */
+  --color-mint-2: #dcefe1; /* deeper mint for gradients */
+  --color-surface: #ffffff; /* cards */
+  --color-surface-2: #f1f8f4; /* subtle fills / inputs */
 
   /* Ink */
-  --color-ink: #22314f; /* primary text + navy chrome */
-  --color-ink-soft: #6f6750; /* muted text (warm sepia) */
-  --color-navy: #1b2640; /* darkest chrome (header banner) */
+  --color-ink: #14302c; /* primary text (deep teal-charcoal) */
+  --color-ink-soft: #5b6f6a; /* muted text */
 
-  /* Accents */
-  --color-gold: #b8912a; /* gold leaf — borders, badges, CTAs */
-  --color-gold-bright: #d9b641;
-  --color-classic-red: #b64226; /* sell / short / danger */
-  --color-classic-green: #2f7d51; /* buy / success */
+  /* Teal chrome */
+  --color-teal: #12766b; /* primary buttons + accents */
+  --color-teal-deep: #0d3b37; /* header / order panel / sidebar */
+  --color-teal-soft: #dff0ec; /* teal-tinted fills */
 
-  /* Fonts (wired to next/font variables in layout.tsx) */
-  --font-display: var(--ff-display), Georgia, "Times New Roman", serif;
-  --font-sans: var(--ff-body), ui-sans-serif, system-ui, sans-serif;
+  /* Actions / movement (green = buy/up, red = sell/short/down) */
+  --color-buy: #1fa64d;
+  --color-buy-bright: #27bd5a;
+  --color-sell: #e0483d;
+  --color-sell-bright: #ef5a4f;
+
+  /* Aliases kept so existing markup reads clearly */
+  --color-classic-green: #1fa64d;
+  --color-classic-red: #e0483d;
+
+  /* Warm accent — wallet coin, small highlights */
+  --color-gold: #e2a63c;
+
+  /* Fonts (wired to next/font in layout.tsx) */
+  --font-sans: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background-color: var(--color-parchment);
-  /* Warm highlight from the top, gentle vignette at the edges. */
-  background-image:
-    radial-gradient(
-      1100px 700px at 50% -12%,
-      rgba(255, 250, 235, 0.7),
-      transparent 60%
-    ),
-    radial-gradient(
-      1400px 900px at 50% 120%,
-      rgba(120, 96, 40, 0.1),
-      transparent 55%
-    );
+  background-color: var(--color-mint);
+  background-image: radial-gradient(
+    1200px 700px at 50% -15%,
+    rgba(255, 255, 255, 0.85),
+    transparent 60%
+  );
   background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
 }
 
-/* Fine paper grain overlay — sits behind content, never intercepts clicks. */
-.paper-grain {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: multiply;
-  background-size: 160px 160px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* Display serif helper. */
+/* Heading helper (Poppins, same family as body — just a hook for weight). */
 .font-display {
   font-family: var(--font-display);
 }
 
-/* A small centered ornament divider: — ◆ — */
+/* A soft centered divider used on some screens. */
 .rule-ornament {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--color-gold);
+  color: var(--color-teal);
 }
 .rule-ornament::before,
 .rule-ornament::after {
@@ -83,15 +75,15 @@ body {
   background: linear-gradient(
     to right,
     transparent,
-    color-mix(in srgb, var(--color-gold) 55%, transparent),
+    color-mix(in srgb, var(--color-teal) 40%, transparent),
     transparent
   );
 }
 
-/* Value flash used later when wallet/portfolio numbers change (Phase 5). */
+/* Value flash used when wallet/portfolio numbers change (Phase 5). */
 @keyframes value-flash {
   0% {
-    background-color: color-mix(in srgb, var(--color-gold-bright) 40%, transparent);
+    background-color: color-mix(in srgb, var(--color-buy) 35%, transparent);
   }
   100% {
     background-color: transparent;

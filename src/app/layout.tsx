@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import { Fraunces, Nunito_Sans } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
-// Display: Fraunces — a characterful high-contrast serif for a classic,
-// board-game feel. Body: Nunito Sans — warm, friendly, and very readable.
-const display = Fraunces({
-  variable: "--ff-display",
+// Poppins — a friendly, geometric sans that matches the game's clean UI.
+const poppins = Poppins({
+  variable: "--ff-sans",
   subsets: ["latin"],
-  style: ["normal", "italic"],
-});
-
-const body = Nunito_Sans({
-  variable: "--ff-body",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -26,14 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${display.variable} ${body.variable} h-full antialiased`}
-    >
-      <body className="relative min-h-full flex flex-col">
-        <div className="paper-grain" aria-hidden="true" />
-        {children}
-      </body>
+    <html lang="en" className={`${poppins.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

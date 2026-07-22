@@ -28,12 +28,12 @@ function CardTable({
   accent: string;
 }) {
   return (
-    <div className="mt-3 overflow-hidden rounded-xl border border-gold/40 bg-cream">
+    <div className="mt-3 overflow-hidden rounded-xl border border-ink/10 bg-surface">
       {cards.map((card, i) => (
         <div
           key={card.key}
           className={`grid grid-cols-1 gap-1 px-4 py-3 sm:grid-cols-[180px_1fr] sm:gap-4 ${
-            i % 2 ? "bg-cream-soft" : ""
+            i % 2 ? "bg-surface-2" : ""
           }`}
         >
           <div className={`font-display text-sm font-semibold ${accent}`}>
@@ -81,7 +81,7 @@ export default function HowToPlayPage() {
           <strong className="text-ink">Days</strong> (10 by default). Each Day
           has <strong className="text-ink">2 Rounds</strong> of trading.
         </p>
-        <ul className="list-disc space-y-1 pl-5 marker:text-gold">
+        <ul className="list-disc space-y-1 pl-5 marker:text-teal">
           <li>
             <strong className="text-ink">Start of Day</strong>:{" "}
             a fresh batch of news appears, hinting at price moves. Some hints are
@@ -127,7 +127,7 @@ export default function HowToPlayPage() {
         </ul>
         <p className="text-xs text-ink-soft">
           Color means the same thing everywhere: green is buying, red is
-          selling/shorting, navy is passing.
+          selling/shorting, dark is passing.
         </p>
       </Section>
 
@@ -139,14 +139,14 @@ export default function HowToPlayPage() {
       </Section>
 
       <div className="mt-6">
-        <h3 className="font-display text-xl font-semibold text-gold">
+        <h3 className="font-display text-xl font-bold text-teal">
           Market Event Cards
         </h3>
         <p className="mt-1 text-sm text-ink-soft">
           Shared events triggered by the market that affect the whole table.
           Shown alongside the daily news.
         </p>
-        <CardTable cards={MARKET_EVENT_CARDS} accent="text-gold" />
+        <CardTable cards={MARKET_EVENT_CARDS} accent="text-teal" />
       </div>
 
       <div className="mt-8">
@@ -173,7 +173,7 @@ export default function HowToPlayPage() {
       <div className="mt-12 flex justify-center">
         <Link
           href="/"
-          className="rounded-lg border border-gold/60 bg-gold px-5 py-2.5 text-sm font-bold text-navy shadow-[0_2px_0_0_rgba(120,90,30,0.5)] transition hover:bg-gold-bright"
+          className="rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep"
         >
           Back to tables
         </Link>

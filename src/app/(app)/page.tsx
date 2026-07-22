@@ -52,18 +52,15 @@ export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-12">
       <div className="mb-10 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal">
           The Trading Floor Awaits
         </p>
-        <h1 className="font-display mt-2 text-4xl font-semibold tracking-tight text-ink">
+        <h1 className="font-display mt-2 text-4xl font-extrabold tracking-tight text-ink">
           Choose your table
         </h1>
         <p className="mt-2 text-sm text-ink-soft">
           Pick how you want to play, then set up your game.
         </p>
-        <div className="rule-ornament mx-auto mt-6 max-w-xs">
-          <span className="text-gold">◆</span>
-        </div>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -73,10 +70,10 @@ export default function HomePage() {
             <Link
               key={mode}
               href={`/play/${mode}`}
-              className="group flex flex-col rounded-2xl border border-gold/40 bg-cream p-6 shadow-[0_12px_30px_-18px_rgba(120,90,30,0.5)] transition hover:-translate-y-1 hover:border-gold hover:shadow-[0_18px_36px_-16px_rgba(120,90,30,0.55)]"
+              className="group flex flex-col rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.45)] transition hover:-translate-y-1 hover:shadow-[0_20px_40px_-18px_rgba(13,59,55,0.5)]"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-gold/40 bg-gold/15 text-gold">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-soft text-teal">
                   <ModeIcon mode={mode} />
                 </span>
                 <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
@@ -84,17 +81,17 @@ export default function HomePage() {
                 </span>
               </div>
 
-              <h2 className="font-display mt-4 text-xl font-semibold text-ink">
+              <h2 className="font-display mt-4 text-xl font-bold text-ink">
                 {meta.label}
               </h2>
               <p className="mt-1 flex-1 text-sm leading-relaxed text-ink-soft">
                 {meta.description}
               </p>
 
-              <span className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-gold group-hover:text-gold-bright">
+              <span className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-teal group-hover:gap-2">
                 Configure
                 <svg
-                  className="h-4 w-4 transition group-hover:translate-x-0.5"
+                  className="h-4 w-4 transition"
                   viewBox="0 0 24 24"
                   fill="none"
                   aria-hidden="true"
@@ -113,10 +110,10 @@ export default function HomePage() {
         })}
       </div>
 
-      <div className="mt-10 rounded-2xl border border-gold/40 bg-cream-soft p-6">
+      <div className="mt-10 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h3 className="font-display text-lg font-semibold text-ink">
+            <h3 className="font-display text-lg font-bold text-ink">
               New to StockXchange?
             </h3>
             <p className="mt-1 text-sm text-ink-soft">
@@ -125,7 +122,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/how-to-play"
-            className="shrink-0 rounded-lg border border-ink/20 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-cream"
+            className="shrink-0 rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-deep"
           >
             How to Play
           </Link>

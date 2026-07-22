@@ -46,7 +46,7 @@ function ServiceCard({
   const label =
     status === "up" ? "Online" : status === "down" ? "Offline" : "Checking…";
   return (
-    <div className="rounded-xl border border-gold/40 bg-cream p-5 shadow-[0_12px_30px_-18px_rgba(120,90,30,0.5)]">
+    <div className="rounded-2xl border border-ink/5 bg-surface p-5 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-base font-semibold text-ink">{name}</h2>
         <div className="flex items-center gap-2 text-xs text-ink-soft">
@@ -132,7 +132,7 @@ export default function StatusPage() {
                 <span className="text-classic-red">
                   {health && !health.reachable ? health.error : "Unreachable"}.
                   Start it with{" "}
-                  <code className="rounded bg-cream-soft px-1 py-0.5">
+                  <code className="rounded bg-surface-2 px-1 py-0.5">
                     uvicorn main:app --reload --port 8000
                   </code>{" "}
                   in <code>price-engine/</code>.
@@ -145,7 +145,7 @@ export default function StatusPage() {
         <p className="mt-8 text-center text-sm">
           <Link
             href="/"
-            className="font-semibold text-gold hover:text-gold-bright"
+            className="font-semibold text-teal hover:text-teal-deep"
           >
             ← Back home
           </Link>
