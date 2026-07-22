@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
+import { ThemeApply } from "@/components/theme-apply";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import type { Theme } from "@/lib/theme";
 
 // Every authenticated page depends on per-request auth state.
 export const dynamic = "force-dynamic";
@@ -67,8 +69,18 @@ export default async function AppLayout({
     user.email ??
     "Trader";
 
+  // Theme preference. If the user_settings table/row doesn't exist yet, this
+  // returns null and we fall back to light — the app never breaks on it.
+  const { data: settings } = await supabase
+    .from("user_settings")
+    .select("theme")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const theme: Theme = settings?.theme === "dark" ? "dark" : "light";
+
   return (
     <div className="flex flex-1 flex-col">
+      <ThemeApply theme={theme} />
       <AppHeader displayName={displayName} avatarUrl={profile?.avatar_url} />
       <div className="flex flex-1 flex-col">{children}</div>
     </div>

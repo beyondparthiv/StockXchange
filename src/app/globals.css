@@ -1,44 +1,68 @@
 @import "tailwindcss";
 
 /*
-  StockXchange theme — "mint & deep teal"
-  ---------------------------------------
-  Clean, friendly, modern game UI: a pale mint canvas, white cards, deep-teal
-  chrome (header / order panel / sidebar), and green/red reserved for trade
-  actions and up/down movement. Modeled on the live game screen so the whole
-  app is cohesive with the trading floor (Phase 5).
+  StockXchange theme — "mint & deep teal", with a dark variant.
+  ------------------------------------------------------------
+  The palette is defined once as raw vars (--c-*) for light, and overridden
+  under [data-theme="dark"]. Tailwind theme tokens point at those vars (not raw
+  hex), so toggling `data-theme` on <html> re-colors the entire app — every
+  bg-surface / text-ink / border-ink utility follows automatically.
 */
 
-@theme inline {
-  /* Canvas + surfaces */
-  --color-mint: #e9f5ec; /* page background */
-  --color-mint-2: #dcefe1; /* deeper mint for gradients */
-  --color-surface: #ffffff; /* cards */
-  --color-surface-2: #f1f8f4; /* subtle fills / inputs */
+:root {
+  --c-mint: #e9f5ec; /* page background */
+  --c-mint-2: #dcefe1;
+  --c-surface: #ffffff; /* cards */
+  --c-surface-2: #f1f8f4; /* inputs / subtle fills */
+  --c-ink: #14302c; /* primary text */
+  --c-ink-soft: #5b6f6a; /* muted text */
+  --c-teal: #12766b; /* primary buttons / accents / links */
+  --c-teal-deep: #0d3b37; /* header / order panel / chrome */
+  --c-teal-soft: #dff0ec; /* teal-tinted fills */
+  --c-buy: #1fa64d;
+  --c-buy-bright: #27bd5a;
+  --c-sell: #e0483d;
+  --c-sell-bright: #ef5a4f;
+  --c-gold: #e2a63c;
+  --c-page-glow: rgba(255, 255, 255, 0.85);
+}
 
-  /* Ink */
-  --color-ink: #14302c; /* primary text (deep teal-charcoal) */
-  --color-ink-soft: #5b6f6a; /* muted text */
+[data-theme="dark"] {
+  --c-mint: #0a1f1b; /* deep teal-charcoal canvas */
+  --c-mint-2: #0d2723;
+  --c-surface: #12302b; /* raised card */
+  --c-surface-2: #17392f;
+  --c-ink: #e9f4ef; /* light text */
+  --c-ink-soft: #9db3ab;
+  --c-teal: #23b39c; /* brighter so it pops on dark */
+  --c-teal-deep: #0a1613; /* darkest chrome */
+  --c-teal-soft: #14352e;
+  --c-buy: #2ebd5a;
+  --c-buy-bright: #39cf67;
+  --c-sell: #ef5a4f;
+  --c-sell-bright: #ff6f63;
+  --c-gold: #e6b95a;
+  --c-page-glow: rgba(255, 255, 255, 0.04);
+}
 
-  /* Teal chrome */
-  --color-teal: #12766b; /* primary buttons + accents */
-  --color-teal-deep: #0d3b37; /* header / order panel / sidebar */
-  --color-teal-soft: #dff0ec; /* teal-tinted fills */
+@theme {
+  --color-mint: var(--c-mint);
+  --color-mint-2: var(--c-mint-2);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-ink: var(--c-ink);
+  --color-ink-soft: var(--c-ink-soft);
+  --color-teal: var(--c-teal);
+  --color-teal-deep: var(--c-teal-deep);
+  --color-teal-soft: var(--c-teal-soft);
+  --color-buy: var(--c-buy);
+  --color-buy-bright: var(--c-buy-bright);
+  --color-sell: var(--c-sell);
+  --color-sell-bright: var(--c-sell-bright);
+  --color-classic-green: var(--c-buy);
+  --color-classic-red: var(--c-sell);
+  --color-gold: var(--c-gold);
 
-  /* Actions / movement (green = buy/up, red = sell/short/down) */
-  --color-buy: #1fa64d;
-  --color-buy-bright: #27bd5a;
-  --color-sell: #e0483d;
-  --color-sell-bright: #ef5a4f;
-
-  /* Aliases kept so existing markup reads clearly */
-  --color-classic-green: #1fa64d;
-  --color-classic-red: #e0483d;
-
-  /* Warm accent — wallet coin, small highlights */
-  --color-gold: #e2a63c;
-
-  /* Fonts (wired to next/font in layout.tsx) */
   --font-sans: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;
 }
@@ -47,7 +71,7 @@ body {
   background-color: var(--color-mint);
   background-image: radial-gradient(
     1200px 700px at 50% -15%,
-    rgba(255, 255, 255, 0.85),
+    var(--c-page-glow),
     transparent 60%
   );
   background-attachment: fixed;
@@ -55,7 +79,7 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Heading helper (Poppins, same family as body — just a hook for weight). */
+/* Heading helper (Poppins, same family as body — a hook for weight). */
 .font-display {
   font-family: var(--font-display);
 }

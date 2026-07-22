@@ -111,6 +111,88 @@ create trigger profiles_touch_updated_at
   for each row execute function public.touch_updated_at();
 
 -- ---------------------------------------------------------------------
+-- user_settings (Phase 3)
+-- One row per user for preferences: sound, theme, and default room prefs.
+-- Rows are created lazily (upserted) by the settings page rather than by a
+-- trigger, so users who signed up before this table existed still work.
+-- ---------------------------------------------------------------------
+create table if not exists public.user_settings (
+  user_id               uuid primary key references auth.users (id) on delete cascade,
+  sound_enabled         boolean not null default true,
+  theme                 text not null default 'light' check (theme in ('light', 'dark')),
+  default_days          int not null default 10,
+  default_starting_cash bigint not null default 15000000,
+  default_companies     int not null default 6,
+  default_round_timer   int not null default 90,
+  updated_at            timestamptz not null default now()
+);
+
+comment on table public.user_settings is 'Per-user preferences (sound, theme, default room config).';
+
+alter table public.user_settings enable row level security;
+
+-- A user may only read/write their own settings row.
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_settings' and policyname='Users can view their own settings') then
+    create policy "Users can view their own settings"
+      on public.user_settings for select using (auth.uid() = user_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_settings' and policyname='Users can insert their own settings') then
+    create policy "Users can insert their own settings"
+      on public.user_settings for insert with check (auth.uid() = user_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_settings' and policyname='Users can update their own settings') then
+    create policy "Users can update their own settings"
+      on public.user_settings for update using (auth.uid() = user_id);
+  end if;
+end $$;
+
+drop trigger if exists user_settings_touch_updated_at on public.user_settings;
+create trigger user_settings_touch_updated_at
+  before update on public.user_settings
+  for each row execute function public.touch_updated_at();
+
+-- ---------------------------------------------------------------------
+-- Storage: avatars bucket (Phase 3)
+-- Public bucket so avatar URLs render anywhere; writes are restricted to a
+-- user's own folder (avatars/<uid>/...), enforced by policies on
+-- storage.objects.
+-- ---------------------------------------------------------------------
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Avatar images are publicly readable" on storage.objects;
+create policy "Avatar images are publicly readable"
+  on storage.objects for select
+  using (bucket_id = 'avatars');
+
+drop policy if exists "Users can upload their own avatar" on storage.objects;
+create policy "Users can upload their own avatar"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Users can update their own avatar" on storage.objects;
+create policy "Users can update their own avatar"
+  on storage.objects for update to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Users can delete their own avatar" on storage.objects;
+create policy "Users can delete their own avatar"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- ---------------------------------------------------------------------
 -- Realtime
 -- Supabase Realtime broadcasts row changes over WebSocket channels. We add
 -- tables to the `supabase_realtime` publication as we create them. Lobby and
@@ -120,7 +202,6 @@ create trigger profiles_touch_updated_at
 -- alter publication supabase_realtime add table public.room_players;
 
 -- =====================================================================
--- End Phase 0 schema. Later phases append: user_settings, rooms,
--- room_players, games, game_players, orders, price_history, news_batches,
--- game_results.
+-- End Phase 3 schema. Later phases append: rooms, room_players, games,
+-- game_players, orders, price_history, news_batches, game_results.
 -- =====================================================================

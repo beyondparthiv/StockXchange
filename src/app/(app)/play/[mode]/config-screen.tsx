@@ -12,88 +12,7 @@ import {
   type GameMode,
 } from "@/lib/game/config";
 import { useGameConfigStore } from "@/lib/stores/game-config-store";
-
-function Stepper({
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  value: number;
-  min: number;
-  max: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <button
-        type="button"
-        onClick={() => onChange(Math.max(min, value - 1))}
-        disabled={value <= min}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ink/15 text-lg text-ink transition hover:bg-surface-2 disabled:opacity-40"
-        aria-label="Decrease"
-      >
-        −
-      </button>
-      <span className="w-10 text-center text-lg font-bold tabular-nums text-ink">
-        {value}
-      </span>
-      <button
-        type="button"
-        onClick={() => onChange(Math.min(max, value + 1))}
-        disabled={value >= max}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ink/15 text-lg text-ink transition hover:bg-surface-2 disabled:opacity-40"
-        aria-label="Increase"
-      >
-        +
-      </button>
-    </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
-        active
-          ? "border-teal bg-teal text-white"
-          : "border-ink/15 text-ink hover:bg-surface-2"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Row({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2 border-b border-ink/10 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <div className="text-sm font-semibold text-ink">{label}</div>
-        {hint && <div className="text-xs text-ink-soft">{hint}</div>}
-      </div>
-      <div>{children}</div>
-    </div>
-  );
-}
+import { Chip, SettingRow, Stepper } from "@/components/ui/controls";
 
 export default function ConfigScreen({ mode }: { mode: GameMode }) {
   const meta = MODE_META[mode];
@@ -184,16 +103,16 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
       </div>
 
       <div className="rounded-2xl border border-ink/5 bg-surface px-6 py-2 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
-        <Row label="Days" hint={`${rounds} rounds total (2 per day)`}>
+        <SettingRow label="Days" hint={`${rounds} rounds total (2 per day)`}>
           <Stepper
             value={config.days}
             min={LIMITS.days.min}
             max={LIMITS.days.max}
             onChange={(v) => setConfig({ days: v })}
           />
-        </Row>
+        </SettingRow>
 
-        <Row label="Starting cash" hint="Per player">
+        <SettingRow label="Starting cash" hint="Per player">
           <div className="flex flex-wrap gap-2">
             {CASH_PRESETS.map((amount) => (
               <Chip
@@ -205,18 +124,18 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
               </Chip>
             ))}
           </div>
-        </Row>
+        </SettingRow>
 
-        <Row label="Companies" hint="Tickers in the market">
+        <SettingRow label="Companies" hint="Tickers in the market">
           <Stepper
             value={config.companies}
             min={LIMITS.companies.min}
             max={LIMITS.companies.max}
             onChange={(v) => setConfig({ companies: v })}
           />
-        </Row>
+        </SettingRow>
 
-        <Row label="Round timer" hint="Seconds to place orders each round">
+        <SettingRow label="Round timer" hint="Seconds to place orders each round">
           <div className="flex flex-wrap gap-2">
             {TIMER_OPTIONS.map((sec) => (
               <Chip
@@ -228,7 +147,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
               </Chip>
             ))}
           </div>
-        </Row>
+        </SettingRow>
       </div>
 
       <button
