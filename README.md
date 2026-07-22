@@ -121,7 +121,7 @@ begins.
 - [x] **Phase 1** — Authentication (Google, phone OTP, email/password, forgot-password, profile on first login)
 - [x] **Phase 2** — Home / mode selection (3 modes, per-mode config screen, How to Play rules + card reference)
 - [x] **Phase 3** — Profile & settings (avatar upload, stats stubs, sound/theme/default-room prefs, light/dark, delete account)
-- [ ] Phase 4 — Lobby & room system
+- [x] **Phase 4** — Lobby & room system (room codes, join, ready-up, host start, Supabase Realtime sync)
 - [ ] Phase 5 — Core game screen
 - [ ] Phase 6 — Price & news engine logic
 - [ ] Phase 7 — Market event & player special cards

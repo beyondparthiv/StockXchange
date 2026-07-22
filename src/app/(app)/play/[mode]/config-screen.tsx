@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   CASH_PRESETS,
@@ -11,10 +12,13 @@ import {
   shortINR,
   type GameMode,
 } from "@/lib/game/config";
+import { ROOM_CODE_LENGTH } from "@/lib/game/rooms";
 import { useGameConfigStore } from "@/lib/stores/game-config-store";
 import { Chip, SettingRow, Stepper } from "@/components/ui/controls";
+import { Alert } from "@/components/auth/auth-ui";
 
 export default function ConfigScreen({ mode }: { mode: GameMode }) {
+  const router = useRouter();
   const meta = MODE_META[mode];
   const { config, setConfig } = useGameConfigStore();
 
@@ -23,6 +27,35 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // Online-mode room actions.
+  const [creating, setCreating] = useState(false);
+  const [roomError, setRoomError] = useState<string | null>(null);
+  const [joinCode, setJoinCode] = useState("");
+
+  async function handleCreateRoom() {
+    setRoomError(null);
+    setCreating(true);
+    try {
+      const res = await fetch("/api/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not create room");
+      router.push(`/room/${data.code}`);
+    } catch (err) {
+      setCreating(false);
+      setRoomError(err instanceof Error ? err.message : "Could not create room");
+    }
+  }
+
+  function handleJoin(e: React.FormEvent) {
+    e.preventDefault();
+    const code = joinCode.trim().toUpperCase();
+    if (code.length === ROOM_CODE_LENGTH) router.push(`/room/${code}`);
+  }
 
   if (!mounted) {
     return (
@@ -34,7 +67,8 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
 
   const rounds = config.days * 2;
 
-  if (ready) {
+  // Ready summary (bots / solo only).
+  if (ready && mode !== "online") {
     return (
       <main className="mx-auto w-full max-w-2xl px-4 py-12">
         <div className="rounded-2xl border border-ink/5 bg-surface p-6 text-center shadow-[0_18px_40px_-20px_rgba(13,59,55,0.45)]">
@@ -150,14 +184,59 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
         </SettingRow>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setReady(true)}
-        className="mt-6 w-full rounded-xl bg-teal px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep active:translate-y-px"
-      >
-        {mode === "online" ? "Create room" : "Start game"}
-      </button>
-      <p className="mt-2 text-center text-xs text-ink-soft">{meta.nextStep}</p>
+      {mode === "online" ? (
+        <div className="mt-6">
+          {roomError && (
+            <div className="mb-4">
+              <Alert kind="error">{roomError}</Alert>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleCreateRoom}
+            disabled={creating}
+            className="w-full rounded-xl bg-teal px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep active:translate-y-px disabled:opacity-60"
+          >
+            {creating ? "Creating room…" : "Create room"}
+          </button>
+
+          <div className="rule-ornament my-5">
+            <span className="text-xs font-semibold uppercase tracking-widest text-ink-soft">
+              or join
+            </span>
+          </div>
+
+          <form onSubmit={handleJoin} className="flex gap-2">
+            <input
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder="Enter room code"
+              maxLength={ROOM_CODE_LENGTH}
+              className="flex-1 rounded-xl border border-ink/10 bg-surface-2 px-3 py-2.5 text-sm uppercase tracking-widest text-ink placeholder-ink-soft/50 outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20"
+            />
+            <button
+              type="submit"
+              disabled={joinCode.trim().length !== ROOM_CODE_LENGTH}
+              className="rounded-xl border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-surface-2 disabled:opacity-40"
+            >
+              Join
+            </button>
+          </form>
+        </div>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => setReady(true)}
+            className="mt-6 w-full rounded-xl bg-teal px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep active:translate-y-px"
+          >
+            Start game
+          </button>
+          <p className="mt-2 text-center text-xs text-ink-soft">
+            {meta.nextStep}
+          </p>
+        </>
+      )}
     </main>
   );
 }

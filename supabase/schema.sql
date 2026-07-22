@@ -193,15 +193,103 @@ create policy "Users can delete their own avatar"
   );
 
 -- ---------------------------------------------------------------------
--- Realtime
--- Supabase Realtime broadcasts row changes over WebSocket channels. We add
--- tables to the `supabase_realtime` publication as we create them. Lobby and
--- game-state tables (Phase 4+) will be added here so clients get live sync.
+-- rooms + room_players (Phase 4)
+-- A room is a multiplayer lobby identified by a short share code. Players
+-- join, ready up, and the host starts the game. RLS keeps writes to your own
+-- membership while allowing any authenticated user to read lobby state (so the
+-- roster is visible to everyone in the room without recursive policies).
 -- ---------------------------------------------------------------------
--- Example (uncomment once the table exists):
--- alter publication supabase_realtime add table public.room_players;
+create table if not exists public.rooms (
+  id         uuid primary key default gen_random_uuid(),
+  code       text not null unique,
+  host_id    uuid not null references auth.users (id) on delete cascade,
+  status     text not null default 'waiting' check (status in ('waiting', 'in_game', 'finished')),
+  config     jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+comment on table public.rooms is 'Multiplayer lobby / game room keyed by a share code.';
+
+create table if not exists public.room_players (
+  room_id      uuid not null references public.rooms (id) on delete cascade,
+  user_id      uuid not null references auth.users (id) on delete cascade,
+  display_name text not null,
+  is_host      boolean not null default false,
+  is_ready     boolean not null default false,
+  joined_at    timestamptz not null default now(),
+  primary key (room_id, user_id)
+);
+
+comment on table public.room_players is 'Membership + ready-state for a room.';
+
+alter table public.rooms enable row level security;
+alter table public.room_players enable row level security;
+
+-- rooms policies
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='rooms' and policyname='Authenticated users can read rooms') then
+    create policy "Authenticated users can read rooms"
+      on public.rooms for select to authenticated using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='rooms' and policyname='Users can create rooms they host') then
+    create policy "Users can create rooms they host"
+      on public.rooms for insert to authenticated with check (auth.uid() = host_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='rooms' and policyname='Host can update their room') then
+    create policy "Host can update their room"
+      on public.rooms for update to authenticated using (auth.uid() = host_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='rooms' and policyname='Host can delete their room') then
+    create policy "Host can delete their room"
+      on public.rooms for delete to authenticated using (auth.uid() = host_id);
+  end if;
+end $$;
+
+-- room_players policies
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='room_players' and policyname='Authenticated users can read room players') then
+    create policy "Authenticated users can read room players"
+      on public.room_players for select to authenticated using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='room_players' and policyname='Users can join as themselves') then
+    create policy "Users can join as themselves"
+      on public.room_players for insert to authenticated with check (auth.uid() = user_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='room_players' and policyname='Users can update their own membership') then
+    create policy "Users can update their own membership"
+      on public.room_players for update to authenticated using (auth.uid() = user_id);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='room_players' and policyname='Users can leave rooms') then
+    create policy "Users can leave rooms"
+      on public.room_players for delete to authenticated using (auth.uid() = user_id);
+  end if;
+end $$;
+
+-- Full row images so Realtime DELETE/UPDATE events carry filterable columns
+-- (e.g. room_id) rather than just the primary key.
+alter table public.rooms replica identity full;
+alter table public.room_players replica identity full;
+
+-- ---------------------------------------------------------------------
+-- Realtime
+-- Supabase Realtime broadcasts row changes over WebSocket channels to
+-- subscribers (subject to RLS). Add lobby tables so clients see joins,
+-- leaves, ready-state, and game start instantly. `add table` errors if the
+-- table is already in the publication, so guard it.
+-- ---------------------------------------------------------------------
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='rooms') then
+    alter publication supabase_realtime add table public.rooms;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='room_players') then
+    alter publication supabase_realtime add table public.room_players;
+  end if;
+end $$;
 
 -- =====================================================================
--- End Phase 3 schema. Later phases append: rooms, room_players, games,
--- game_players, orders, price_history, news_batches, game_results.
+-- End Phase 4 schema. Later phases append: games, game_players, orders,
+-- price_history, news_batches, game_results.
 -- =====================================================================

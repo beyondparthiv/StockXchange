@@ -80,8 +80,8 @@ export const MODE_META: Record<GameMode, ModeMeta> = {
     tagline: "Multiplayer",
     description:
       "Create or join a room with a share code and trade against friends in real time.",
-    nextStep: "Room lobby & live sync arrive in Phase 4.",
-    available: false,
+    nextStep: "Room ready — the live game screen arrives in Phase 5.",
+    available: true,
   },
   bots: {
     label: "Play vs Bots",
