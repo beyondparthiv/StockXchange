@@ -112,7 +112,7 @@ export default function SignupForm() {
             disabled={!configured}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Trader Joe"
+            placeholder="Parthiv Modi"
           />
           <Field
             label="Email"

@@ -119,7 +119,7 @@ begins.
 
 - [x] **Phase 0** — Project scaffolding (Next.js + FastAPI + Supabase config, health ping)
 - [x] **Phase 1** — Authentication (Google, phone OTP, email/password, forgot-password, profile on first login)
-- [ ] Phase 2 — Home / mode selection
+- [x] **Phase 2** — Home / mode selection (3 modes, per-mode config screen, How to Play rules + card reference)
 - [ ] Phase 3 — Profile & settings
 - [ ] Phase 4 — Lobby & room system
 - [ ] Phase 5 — Core game screen
