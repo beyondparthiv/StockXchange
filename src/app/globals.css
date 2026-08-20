@@ -1,115 +1,302 @@
 @import "tailwindcss";
 
 /*
-  StockXchange theme — "mint & deep teal", with a dark variant.
-  ------------------------------------------------------------
-  The palette is defined once as raw vars (--c-*) for light, and overridden
-  under [data-theme="dark"]. Tailwind theme tokens point at those vars (not raw
-  hex), so toggling `data-theme` on <html> re-colors the entire app — every
+  StockXchange design system — professional trading terminal.
+  -----------------------------------------------------------
+  Foundation is a neutral charcoal (dark) / neutral gray (light). Colour is
+  spent deliberately and sparingly:
+
+    - accent (institutional blue)  interactive affordances only
+    - up (green) / down (red)      market movement ONLY — never decoration
+    - company accents              per-ticker identity, used at low opacity
+
+  The palette is declared once as raw vars (--c-*) for light and overridden
+  under [data-theme="dark"]. Tailwind theme tokens point at those vars, so
+  toggling `data-theme` on <html> re-colours the whole app — every
   bg-surface / text-ink / border-ink utility follows automatically.
+
+  Token names are intentionally semantic (canvas/surface/ink/line/accent/
+  chrome/up/down). The older mint/teal/buy/sell names are kept as aliases so
+  existing markup keeps working while it migrates.
 */
 
 :root {
-  --c-mint: #e9f5ec; /* page background */
-  --c-mint-2: #dcefe1;
-  --c-surface: #ffffff; /* cards */
-  --c-surface-2: #f1f8f4; /* inputs / subtle fills */
-  --c-ink: #14302c; /* primary text */
-  --c-ink-soft: #5b6f6a; /* muted text */
-  --c-teal: #12766b; /* primary buttons / accents / links */
-  --c-teal-deep: #0d3b37; /* header / order panel / chrome */
-  --c-teal-soft: #dff0ec; /* teal-tinted fills */
-  --c-buy: #1fa64d;
-  --c-buy-bright: #27bd5a;
-  --c-sell: #e0483d;
-  --c-sell-bright: #ef5a4f;
-  --c-gold: #e2a63c;
-  --c-page-glow: rgba(255, 255, 255, 0.85);
+  /* Foundation — neutral, never tinted toward a brand hue. */
+  --c-canvas: #f5f6f8; /* page background */
+  --c-canvas-2: #eceef2; /* recessed strips */
+  --c-surface: #ffffff; /* panels / cards */
+  --c-surface-2: #f2f4f7; /* inputs, subtle fills, table stripes */
+  --c-surface-3: #e8ebf0; /* hover / pressed fills */
+
+  /* Typography ink ramp. */
+  --c-ink: #0f1319; /* primary text */
+  --c-ink-soft: #5b6472; /* secondary text, labels */
+  --c-ink-faint: #8b94a3; /* tertiary, timestamps, units */
+
+  /* Structure. Borders do the work that shadows used to. */
+  --c-line: rgba(15, 19, 25, 0.1);
+  --c-line-strong: rgba(15, 19, 25, 0.16);
+
+  /* Interactive accent — restrained institutional blue. */
+  --c-accent: #2563eb;
+  --c-accent-hover: #1d4ed8;
+  --c-accent-soft: #e8effd;
+  --c-accent-ring: rgba(37, 99, 235, 0.28);
+
+  /* Chrome stays dark in both themes — the terminal top bar. */
+  --c-chrome: #0d1015;
+  --c-chrome-2: #161a21;
+
+  /* Market movement. The only place green and red are allowed. */
+  --c-up: #0a8f4d;
+  --c-up-bright: #0ba85a;
+  --c-down: #d13b34;
+  --c-down-bright: #e2483f;
+  --c-flat: var(--c-ink-faint);
+
+  --c-warn: #b45309;
+
+  /* Depth: borders + very low-alpha shadows. No glow. */
+  --sh-panel: 0 1px 2px rgba(15, 19, 25, 0.04);
+  --sh-raised: 0 4px 12px -4px rgba(15, 19, 25, 0.1);
+  --sh-overlay: 0 12px 32px -12px rgba(15, 19, 25, 0.22);
 }
 
 [data-theme="dark"] {
-  --c-mint: #0a1f1b; /* deep teal-charcoal canvas */
-  --c-mint-2: #0d2723;
-  --c-surface: #12302b; /* raised card */
-  --c-surface-2: #17392f;
-  --c-ink: #e9f4ef; /* light text */
-  --c-ink-soft: #9db3ab;
-  --c-teal: #23b39c; /* brighter so it pops on dark */
-  --c-teal-deep: #0a1613; /* darkest chrome */
-  --c-teal-soft: #14352e;
-  --c-buy: #2ebd5a;
-  --c-buy-bright: #39cf67;
-  --c-sell: #ef5a4f;
-  --c-sell-bright: #ff6f63;
-  --c-gold: #e6b95a;
-  --c-page-glow: rgba(255, 255, 255, 0.04);
+  --c-canvas: #0b0d11; /* near-black charcoal */
+  --c-canvas-2: #0f1216;
+  --c-surface: #14171d;
+  --c-surface-2: #1a1e25;
+  --c-surface-3: #222731;
+
+  --c-ink: #e7eaef;
+  --c-ink-soft: #98a1af;
+  --c-ink-faint: #6c7684;
+
+  --c-line: rgba(255, 255, 255, 0.09);
+  --c-line-strong: rgba(255, 255, 255, 0.16);
+
+  --c-accent: #4d8dff;
+  --c-accent-hover: #6ba0ff;
+  --c-accent-soft: rgba(77, 141, 255, 0.14);
+  --c-accent-ring: rgba(77, 141, 255, 0.32);
+
+  --c-chrome: #0d1015;
+  --c-chrome-2: #171b22;
+
+  --c-up: #1fbf6b;
+  --c-up-bright: #34d67f;
+  --c-down: #f0524a;
+  --c-down-bright: #ff6a61;
+
+  --c-warn: #e0a13a;
+
+  --sh-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sh-raised: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
+  --sh-overlay: 0 12px 32px -12px rgba(0, 0, 0, 0.65);
 }
 
 @theme {
-  --color-mint: var(--c-mint);
-  --color-mint-2: var(--c-mint-2);
+  /* --- Semantic colour tokens (preferred) --- */
+  --color-canvas: var(--c-canvas);
+  --color-canvas-2: var(--c-canvas-2);
   --color-surface: var(--c-surface);
   --color-surface-2: var(--c-surface-2);
+  --color-surface-3: var(--c-surface-3);
+
   --color-ink: var(--c-ink);
   --color-ink-soft: var(--c-ink-soft);
-  --color-teal: var(--c-teal);
-  --color-teal-deep: var(--c-teal-deep);
-  --color-teal-soft: var(--c-teal-soft);
-  --color-buy: var(--c-buy);
-  --color-buy-bright: var(--c-buy-bright);
-  --color-sell: var(--c-sell);
-  --color-sell-bright: var(--c-sell-bright);
-  --color-classic-green: var(--c-buy);
-  --color-classic-red: var(--c-sell);
-  --color-gold: var(--c-gold);
+  --color-ink-faint: var(--c-ink-faint);
 
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-accent-soft: var(--c-accent-soft);
+
+  --color-chrome: var(--c-chrome);
+  --color-chrome-2: var(--c-chrome-2);
+
+  --color-up: var(--c-up);
+  --color-up-bright: var(--c-up-bright);
+  --color-down: var(--c-down);
+  --color-down-bright: var(--c-down-bright);
+  --color-flat: var(--c-flat);
+  --color-warn: var(--c-warn);
+
+  /* --- Compatibility aliases (older markup) --- */
+  --color-mint: var(--c-canvas);
+  --color-mint-2: var(--c-canvas-2);
+  --color-teal: var(--c-accent);
+  --color-teal-deep: var(--c-chrome);
+  --color-teal-soft: var(--c-accent-soft);
+  --color-buy: var(--c-up);
+  --color-buy-bright: var(--c-up-bright);
+  --color-sell: var(--c-down);
+  --color-sell-bright: var(--c-down-bright);
+  --color-classic-green: var(--c-up);
+  --color-classic-red: var(--c-down);
+  --color-gold: var(--c-warn);
+
+  /* --- Typography --- */
   --font-sans: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--ff-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* --- Radii (§23: restrained, no floating pills) --- */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+  --radius-3xl: 14px;
+
+  /* --- Depth (§24: borders first, shadows barely there) --- */
+  --shadow-panel: var(--sh-panel);
+  --shadow-raised: var(--sh-raised);
+  --shadow-overlay: var(--sh-overlay);
 }
 
 body {
-  background-color: var(--color-mint);
-  background-image: radial-gradient(
-    1200px 700px at 50% -15%,
-    var(--c-page-glow),
-    transparent 60%
-  );
-  background-attachment: fixed;
+  background-color: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  /* Financial UI: consistent digit widths everywhere by default. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Heading helper (Poppins, same family as body — a hook for weight). */
-.font-display {
-  font-family: var(--font-display);
+/*
+  Type scale (§21). One family, hierarchy carried by size/weight/tracking
+  rather than by decoration. Applied as classes so components stay declarative.
+*/
+.t-display {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.t-title {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+}
+.t-section {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+.t-label {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  font-weight: 550;
+  color: var(--color-ink-soft);
+}
+/* Ticker symbols — mono, wide, unmistakable. */
+.t-ticker {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+/* Large monetary figures — the visual focus of a price tile. */
+.t-figure {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+/* Inline monetary/percentage values in rows and tables. */
+.t-value {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
 }
 
-/* A soft centered divider used on some screens. */
-.rule-ornament {
+/* Hairline separator — replaces the decorative rule ornament. */
+.rule {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--color-teal);
 }
-.rule-ornament::before,
-.rule-ornament::after {
+.rule::before,
+.rule::after {
   content: "";
   height: 1px;
   flex: 1;
-  background: linear-gradient(
-    to right,
-    transparent,
-    color-mix(in srgb, var(--color-teal) 40%, transparent),
-    transparent
-  );
+  background: var(--color-line);
 }
 
-/* Value flash used when wallet/portfolio numbers change (Phase 5). */
-@keyframes value-flash {
+/* Focus: single consistent treatment, keyboard users included. */
+:where(a, button, input, select, textarea, [role="switch"]):focus-visible {
+  outline: 2px solid var(--c-accent-ring);
+  outline-offset: 2px;
+}
+
+/* --- Motion (§20): subtle, communicates state change, never bouncy. --- */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Row/tile flash when a value settles. Tint follows direction of the move. */
+@keyframes value-flash-up {
   0% {
-    background-color: color-mix(in srgb, var(--color-buy) 35%, transparent);
+    background-color: color-mix(in srgb, var(--color-up) 22%, transparent);
   }
   100% {
     background-color: transparent;
+  }
+}
+@keyframes value-flash-down {
+  0% {
+    background-color: color-mix(in srgb, var(--color-down) 22%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 180ms ease-out both;
+}
+.animate-rise-in {
+  animation: rise-in 220ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.flash-up {
+  animation: value-flash-up 700ms ease-out;
+}
+.flash-down {
+  animation: value-flash-down 700ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-rise-in,
+  .flash-up,
+  .flash-down {
+    animation: none;
   }
 }

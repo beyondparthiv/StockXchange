@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
-// Poppins — a friendly, geometric sans that matches the game's clean UI.
-const poppins = Poppins({
+// Inter — the neutral UI sans used by most financial dashboards. Variable, so
+// the whole 400–700 range ships without listing weights.
+const inter = Inter({
   variable: "--ff-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+});
+
+// JetBrains Mono — tickers and monetary figures only. Fixed advance widths keep
+// columns of prices aligned as digits change.
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--ff-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -26,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
