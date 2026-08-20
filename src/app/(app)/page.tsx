@@ -6,7 +6,7 @@ export const metadata = { title: "Play · StockXchange" };
 
 /** Small inline icons per mode — keeps the cards visual without an icon lib. */
 function ModeIcon({ mode }: { mode: GameMode }) {
-  const common = "h-6 w-6";
+  const common = "h-5 w-5";
   if (mode === "online") {
     return (
       <svg className={common} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -51,45 +51,37 @@ function ModeIcon({ mode }: { mode: GameMode }) {
 
 export default function HomePage() {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-12">
-      <div className="mb-10 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal">
-          The Trading Floor Awaits
-        </p>
-        <h1 className="font-display mt-2 text-4xl font-extrabold tracking-tight text-ink">
-          Choose your table
-        </h1>
-        <p className="mt-2 text-sm text-ink-soft">
-          Pick how you want to play, then set up your game.
+    <main className="mx-auto w-full max-w-6xl px-6 py-12">
+      <div className="mb-8">
+        <p className="t-section">New game</p>
+        <h1 className="t-display mt-2 text-ink">Select a mode</h1>
+        <p className="mt-1.5 text-sm text-ink-soft">
+          Pick how you want to play, then configure the market.
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {GAME_MODES.map((mode) => {
           const meta = MODE_META[mode];
           return (
             <Link
               key={mode}
               href={`/play/${mode}`}
-              className="group flex flex-col rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.45)] transition hover:-translate-y-1 hover:shadow-[0_20px_40px_-18px_rgba(13,59,55,0.5)]"
+              className="group flex flex-col rounded-lg border border-line bg-surface p-5 shadow-panel transition hover:border-line-strong"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-soft text-teal">
+                <span className="flex h-9 w-9 items-center justify-center rounded-md bg-surface-2 text-ink-soft transition group-hover:text-accent">
                   <ModeIcon mode={mode} />
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-                  {meta.tagline}
-                </span>
+                <span className="t-section">{meta.tagline}</span>
               </div>
 
-              <h2 className="font-display mt-4 text-xl font-bold text-ink">
-                {meta.label}
-              </h2>
-              <p className="mt-1 flex-1 text-sm leading-relaxed text-ink-soft">
+              <h2 className="t-title mt-4 text-ink">{meta.label}</h2>
+              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-ink-soft">
                 {meta.description}
               </p>
 
-              <span className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-teal group-hover:gap-2">
+              <span className="mt-5 inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-accent">
                 Configure
                 <svg
                   className="h-4 w-4 transition"
@@ -111,33 +103,29 @@ export default function HomePage() {
         })}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mt-4 divide-y divide-line rounded-lg border border-line bg-surface shadow-panel">
+        <div className="flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
           <div>
-            <h3 className="font-display text-lg font-bold text-ink">
-              Have a room code?
-            </h3>
-            <p className="mt-1 text-sm text-ink-soft">
+            <h3 className="text-sm font-semibold text-ink">Have a room code?</h3>
+            <p className="mt-1 text-[0.8125rem] text-ink-soft">
               Join a friend&apos;s game — no need to host.
             </p>
           </div>
           <JoinRoom />
         </div>
-      </div>
 
-      <div className="mt-6 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
           <div>
-            <h3 className="font-display text-lg font-bold text-ink">
+            <h3 className="text-sm font-semibold text-ink">
               New to StockXchange?
             </h3>
-            <p className="mt-1 text-sm text-ink-soft">
+            <p className="mt-1 text-[0.8125rem] text-ink-soft">
               Learn the rules, order types, and both card systems.
             </p>
           </div>
           <Link
             href="/how-to-play"
-            className="shrink-0 rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-deep"
+            className="shrink-0 rounded-md border border-line-strong px-4 py-2 text-[0.8125rem] font-medium text-ink transition hover:bg-surface-2"
           >
             How to Play
           </Link>

@@ -18,7 +18,7 @@ export async function generateMetadata({
 function RoomNotFound({ code }: { code: string }) {
   return (
     <main className="mx-auto w-full max-w-md px-4 py-20 text-center">
-      <h1 className="font-display text-2xl font-bold text-ink">
+      <h1 className="t-title text-ink">
         Room not found
       </h1>
       <p className="mt-2 text-sm text-ink-soft">
@@ -27,7 +27,7 @@ function RoomNotFound({ code }: { code: string }) {
       </p>
       <Link
         href="/play/online"
-        className="mt-6 inline-block rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-deep"
+        className="mt-6 inline-block rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover"
       >
         Back to Play Online
       </Link>

@@ -100,7 +100,7 @@ export default function ProfileForm({
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">
+      <h1 className="t-display text-ink">
         Profile
       </h1>
       <p className="mt-1 text-sm text-ink-soft">
@@ -114,9 +114,9 @@ export default function ProfileForm({
       )}
 
       {/* Identity card */}
-      <div className="mt-6 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
+      <div className="mt-6 rounded-lg border border-line bg-surface p-6 shadow-panel">
         <div className="flex items-center gap-4">
-          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-teal-soft text-3xl font-bold text-teal">
+          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-accent-soft text-3xl font-bold text-accent">
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -133,7 +133,7 @@ export default function ProfileForm({
               type="button"
               onClick={() => fileInput.current?.click()}
               disabled={uploading}
-              className="rounded-xl border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface-2 disabled:opacity-60"
+              className="rounded-md border border-line-strong px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface-2 disabled:opacity-60"
             >
               {uploading ? "Uploading…" : "Change avatar"}
             </button>
@@ -158,7 +158,7 @@ export default function ProfileForm({
               required
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-xl border border-ink/10 bg-surface-2 px-3 py-2.5 text-sm text-ink outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20"
+              className="w-full rounded-md border border-line bg-surface-2 px-3 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
           </label>
 
@@ -170,7 +170,7 @@ export default function ProfileForm({
               type="email"
               value={email}
               disabled
-              className="w-full cursor-not-allowed rounded-xl border border-ink/10 bg-surface-2 px-3 py-2.5 text-sm text-ink-soft"
+              className="w-full cursor-not-allowed rounded-md border border-line bg-surface-2 px-3 py-2.5 text-sm text-ink-soft"
             />
           </label>
 
@@ -183,7 +183,7 @@ export default function ProfileForm({
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-deep disabled:opacity-60"
+            className="rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save changes"}
           </button>
@@ -192,14 +192,14 @@ export default function ProfileForm({
 
       {/* Stats */}
       <div className="mt-6">
-        <h2 className="font-display text-lg font-bold text-ink">Stats</h2>
+        <h2 className="text-sm font-semibold text-ink">Stats</h2>
         <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {stats.map((s) => (
             <div
               key={s.label}
-              className="rounded-2xl border border-ink/5 bg-surface p-5 text-center shadow-[0_14px_30px_-20px_rgba(13,59,55,0.35)]"
+              className="rounded-lg border border-line bg-surface p-5 text-center shadow-panel"
             >
-              <div className="font-display text-2xl font-extrabold text-ink">
+              <div className="t-title text-ink">
                 {s.value}
               </div>
               <div className="mt-1 text-xs text-ink-soft">{s.label}</div>

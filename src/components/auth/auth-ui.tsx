@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 /**
- * Presentational building blocks shared across the auth pages. Mint & deep-teal
- * theme: white cards on a mint canvas, teal primary actions, Poppins type.
+ * Presentational building blocks shared across the auth pages. Follows the
+ * terminal design system: neutral panels on a neutral canvas, a single blue
+ * accent for the primary action, borders instead of shadows for structure.
  */
 
 export function AuthShell({
@@ -23,17 +24,17 @@ export function AuthShell({
         <div className="mb-8 text-center">
           <Link
             href="/"
-            className="font-display text-3xl font-extrabold tracking-tight text-ink"
+            className="t-title tracking-tight text-ink"
           >
-            Stock<span className="text-teal">Xchange</span>
+            Stock<span className="text-ink-faint">Xchange</span>
           </Link>
-          <h1 className="font-display mt-6 text-2xl font-bold text-ink">
+          <h1 className="t-display mt-6 text-ink">
             {title}
           </h1>
-          {subtitle && <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>}
+          {subtitle && <p className="mt-1.5 text-sm text-ink-soft">{subtitle}</p>}
         </div>
 
-        <div className="rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_18px_40px_-20px_rgba(13,59,55,0.45)]">
+        <div className="rounded-lg border border-line bg-surface p-6 shadow-panel">
           {children}
         </div>
 
@@ -51,12 +52,12 @@ export function Field({
 }: { label: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold text-ink-soft">
+      <span className="mb-1.5 block text-xs font-medium text-ink-soft">
         {label}
       </span>
       <input
         {...props}
-        className="w-full rounded-xl border border-ink/10 bg-surface-2 px-3 py-2.5 text-sm text-ink placeholder-ink-soft/50 outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20 disabled:opacity-50"
+        className="w-full rounded-md border border-line-strong bg-surface-2 px-3 py-2.5 text-sm text-ink placeholder-ink-faint outline-none transition focus:border-accent focus:bg-surface disabled:opacity-50"
       />
     </label>
   );
@@ -72,7 +73,7 @@ export function SubmitButton({
       {...props}
       type="submit"
       disabled={loading || props.disabled}
-      className="w-full rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+      className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-55"
     >
       {loading ? "Please wait…" : children}
     </button>
@@ -91,7 +92,7 @@ export function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-[#14302c] transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2 rounded-md border border-line-strong bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-55"
     >
       <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -118,8 +119,8 @@ export function GoogleButton({
 
 export function Divider({ label }: { label: string }) {
   return (
-    <div className="rule-ornament my-5">
-      <span className="text-xs font-semibold uppercase tracking-widest text-ink-soft">
+    <div className="rule my-5">
+      <span className="t-section">
         {label}
       </span>
     </div>
@@ -135,10 +136,10 @@ export function Alert({
 }) {
   const styles =
     kind === "error"
-      ? "border-sell/30 bg-sell/10 text-sell"
-      : "border-buy/30 bg-buy/10 text-buy";
+      ? "border-down/30 bg-down/8 text-down"
+      : "border-up/30 bg-up/8 text-up";
   return (
-    <div className={`rounded-xl border px-3 py-2 text-xs font-medium ${styles}`}>
+    <div className={`rounded-md border px-3 py-2 text-xs font-medium ${styles}`}>
       {children}
     </div>
   );
@@ -151,7 +152,7 @@ export function ConfigNotice() {
   return (
     <Alert kind="error">
       Supabase isn&apos;t configured yet. Add your project URL and anon key to{" "}
-      <code className="rounded bg-surface-2 px-1">.env.local</code> and restart
+      <code className="rounded-xs bg-surface-2 px-1 font-mono text-[0.6875rem]">.env.local</code> and restart
       the dev server. See the README for setup steps.
     </Alert>
   );

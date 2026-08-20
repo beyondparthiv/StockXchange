@@ -29,8 +29,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-6 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
-      <h2 className="font-display text-lg font-bold text-ink">{title}</h2>
+    <section className="mt-6 rounded-lg border border-line bg-surface p-6 shadow-panel">
+      <h2 className="text-sm font-semibold text-ink">{title}</h2>
       <div className="mt-2">{children}</div>
     </section>
   );
@@ -96,7 +96,7 @@ export default function SettingsForm({
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">
+      <h1 className="t-display text-ink">
         Settings
       </h1>
       <p className="mt-1 text-sm text-ink-soft">
@@ -184,7 +184,7 @@ export default function SettingsForm({
         type="button"
         onClick={handleSave}
         disabled={saving}
-        className="mt-6 w-full rounded-xl bg-teal px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep disabled:opacity-60"
+        className="mt-6 w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-hover disabled:opacity-60"
       >
         {saving ? "Saving…" : "Save settings"}
       </button>
@@ -199,7 +199,7 @@ export default function SettingsForm({
           <form action="/auth/signout" method="post">
             <button
               type="submit"
-              className="rounded-xl border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface-2"
+              className="rounded-md border border-line-strong px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface-2"
             >
               Log out
             </button>
@@ -208,8 +208,8 @@ export default function SettingsForm({
       </Card>
 
       {/* Danger zone */}
-      <section className="mt-6 rounded-2xl border border-sell/30 bg-sell/5 p-6">
-        <h2 className="font-display text-lg font-bold text-sell">Danger zone</h2>
+      <section className="mt-6 rounded-lg border border-down/30 bg-down/5 p-6">
+        <h2 className="text-sm font-semibold text-down">Danger zone</h2>
         <p className="mt-1 text-sm text-ink-soft">
           Deleting your account is permanent and removes your profile and stats.
         </p>
@@ -218,7 +218,7 @@ export default function SettingsForm({
             <form action="/auth/delete-account" method="post">
               <button
                 type="submit"
-                className="rounded-xl bg-sell px-4 py-2 text-sm font-semibold text-white transition hover:bg-sell-bright"
+                className="rounded-md bg-down px-4 py-2 text-sm font-semibold text-white transition hover:bg-down-bright"
               >
                 Yes, delete permanently
               </button>
@@ -226,7 +226,7 @@ export default function SettingsForm({
             <button
               type="button"
               onClick={() => setConfirmingDelete(false)}
-              className="rounded-xl border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface-2"
+              className="rounded-md border border-line-strong px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface-2"
             >
               Cancel
             </button>
@@ -235,7 +235,7 @@ export default function SettingsForm({
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="mt-4 rounded-xl border border-sell/50 px-4 py-2 text-sm font-semibold text-sell transition hover:bg-sell/10"
+            className="mt-4 rounded-md border border-down/50 px-4 py-2 text-sm font-semibold text-down transition hover:bg-down/10"
           >
             Delete account
           </button>

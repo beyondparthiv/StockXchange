@@ -20,14 +20,14 @@ type Status = "loading" | "up" | "down";
 function StatusDot({ status }: { status: Status }) {
   const color =
     status === "up"
-      ? "bg-classic-green"
+      ? "bg-up"
       : status === "down"
-        ? "bg-classic-red"
+        ? "bg-down"
         : "bg-ink-soft";
   return (
     <span className="relative flex h-3 w-3">
       {status === "up" && (
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-classic-green opacity-75" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-up opacity-75" />
       )}
       <span className={`relative inline-flex h-3 w-3 rounded-full ${color}`} />
     </span>
@@ -46,9 +46,9 @@ function ServiceCard({
   const label =
     status === "up" ? "Online" : status === "down" ? "Offline" : "Checking…";
   return (
-    <div className="rounded-2xl border border-ink/5 bg-surface p-5 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
+    <div className="rounded-lg border border-line bg-surface p-5 shadow-panel">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-base font-semibold text-ink">{name}</h2>
+        <h2 className="text-sm font-semibold text-ink">{name}</h2>
         <div className="flex items-center gap-2 text-xs text-ink-soft">
           <StatusDot status={status} />
           {label}
@@ -86,7 +86,7 @@ export default function StatusPage() {
     <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-16">
       <main className="w-full max-w-xl">
         <div className="mb-10 text-center">
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">
+          <h1 className="t-display text-ink">
             Service status
           </h1>
           <p className="mt-2 text-sm text-ink-soft">
@@ -129,7 +129,7 @@ export default function StatusPage() {
                   </li>
                 </ul>
               ) : (
-                <span className="text-classic-red">
+                <span className="text-down">
                   {health && !health.reachable ? health.error : "Unreachable"}.
                   Start it with{" "}
                   <code className="rounded bg-surface-2 px-1 py-0.5">
@@ -145,7 +145,7 @@ export default function StatusPage() {
         <p className="mt-8 text-center text-sm">
           <Link
             href="/"
-            className="font-semibold text-teal hover:text-teal-deep"
+            className="font-semibold text-accent hover:text-accent-hover"
           >
             ← Back home
           </Link>

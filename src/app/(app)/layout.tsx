@@ -24,23 +24,23 @@ export default async function AppLayout({
     return (
       <div className="flex flex-1 items-center justify-center px-6 py-16">
         <div className="w-full max-w-md text-center">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">
-            Stock<span className="text-teal">Xchange</span>
+          <h1 className="t-display text-ink">
+            Stock<span className="text-ink-faint">Xchange</span>
           </h1>
-          <div className="mt-6 rounded-2xl border border-ink/5 bg-surface p-5 text-left text-sm text-ink shadow-[0_18px_40px_-20px_rgba(13,59,55,0.45)]">
-            <p className="font-semibold text-sell">
+          <div className="mt-6 rounded-lg border border-line bg-surface p-5 text-left text-sm text-ink shadow-panel">
+            <p className="font-medium text-down">
               Supabase isn&apos;t configured yet.
             </p>
             <p className="mt-2 text-ink-soft">
               Add your project URL and anon key to{" "}
-              <code className="rounded bg-surface-2 px-1">.env.local</code> and
+              <code className="rounded-xs bg-surface-2 px-1 font-mono text-[0.6875rem]">.env.local</code> and
               restart the dev server. See the README for setup.
             </p>
           </div>
           <p className="mt-6 text-sm">
             <Link
               href="/status"
-              className="font-semibold text-teal hover:text-teal-deep"
+              className="font-medium text-accent hover:text-accent-hover"
             >
               View service status →
             </Link>

@@ -83,7 +83,7 @@ export default function SignupForm() {
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-semibold text-teal hover:text-teal-deep"
+            className="font-semibold text-accent hover:text-accent-hover"
           >
             Log in
           </Link>
@@ -142,7 +142,7 @@ export default function SignupForm() {
 
         <p className="text-center text-xs text-ink-soft">
           Prefer your phone? Use{" "}
-          <Link href="/login" className="font-semibold text-teal hover:text-teal-deep">
+          <Link href="/login" className="font-semibold text-accent hover:text-accent-hover">
             phone login
           </Link>{" "}
           — a verified number creates your account automatically.

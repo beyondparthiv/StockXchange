@@ -12,7 +12,7 @@ function Section({
 }) {
   return (
     <section className="mt-10">
-      <h2 className="font-display text-2xl font-semibold text-ink">{title}</h2>
+      <h2 className="t-title text-ink">{title}</h2>
       <div className="mt-3 space-y-3 text-sm leading-relaxed text-ink-soft">
         {children}
       </div>
@@ -28,7 +28,7 @@ function CardTable({
   accent: string;
 }) {
   return (
-    <div className="mt-3 overflow-hidden rounded-xl border border-ink/10 bg-surface">
+    <div className="mt-3 overflow-hidden rounded-md border border-line bg-surface">
       {cards.map((card, i) => (
         <div
           key={card.key}
@@ -36,7 +36,7 @@ function CardTable({
             i % 2 ? "bg-surface-2" : ""
           }`}
         >
-          <div className={`font-display text-sm font-semibold ${accent}`}>
+          <div className={`text-[0.8125rem] font-semibold ${accent}`}>
             {card.name}
           </div>
           <div className="text-sm leading-relaxed text-ink-soft">
@@ -59,7 +59,7 @@ export default function HowToPlayPage() {
           ← Tables
         </Link>
       </div>
-      <h1 className="font-display text-4xl font-semibold tracking-tight text-ink">
+      <h1 className="t-display text-ink">
         How to Play
       </h1>
       <p className="mt-2 text-sm text-ink-soft">
@@ -81,7 +81,7 @@ export default function HowToPlayPage() {
           <strong className="text-ink">Days</strong> (10 by default). Each Day
           has <strong className="text-ink">2 Rounds</strong> of trading.
         </p>
-        <ul className="list-disc space-y-1 pl-5 marker:text-teal">
+        <ul className="list-disc space-y-1 pl-5 marker:text-accent">
           <li>
             <strong className="text-ink">Start of Day</strong>:{" "}
             a fresh batch of news appears, hinting at price moves. Some hints are
@@ -107,15 +107,15 @@ export default function HowToPlayPage() {
       <Section title="Order types">
         <ul className="space-y-2">
           <li>
-            <span className="font-bold text-classic-green">Buy</span> — spend
+            <span className="font-bold text-up">Buy</span> — spend
             cash to add shares to your holdings.
           </li>
           <li>
-            <span className="font-bold text-classic-red">Sell</span> — sell
+            <span className="font-bold text-down">Sell</span> — sell
             shares you own back for cash.
           </li>
           <li>
-            <span className="font-bold text-classic-red">Short Sell</span> —
+            <span className="font-bold text-down">Short Sell</span> —
             borrow and sell shares you don&apos;t own, betting the price falls.
             Profit if it drops before you cover; you must cover before the game
             ends.
@@ -139,18 +139,18 @@ export default function HowToPlayPage() {
       </Section>
 
       <div className="mt-6">
-        <h3 className="font-display text-xl font-bold text-teal">
+        <h3 className="t-title text-accent">
           Market Event Cards
         </h3>
         <p className="mt-1 text-sm text-ink-soft">
           Shared events triggered by the market that affect the whole table.
           Shown alongside the daily news.
         </p>
-        <CardTable cards={MARKET_EVENT_CARDS} accent="text-teal" />
+        <CardTable cards={MARKET_EVENT_CARDS} accent="text-accent" />
       </div>
 
       <div className="mt-8">
-        <h3 className="font-display text-xl font-semibold text-ink">
+        <h3 className="t-title text-ink">
           Player Special Cards
         </h3>
         <p className="mt-1 text-sm text-ink-soft">
@@ -173,7 +173,7 @@ export default function HowToPlayPage() {
       <div className="mt-12 flex justify-center">
         <Link
           href="/"
-          className="rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep"
+          className="rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-hover"
         >
           Back to tables
         </Link>

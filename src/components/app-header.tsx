@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 /**
- * Top navigation for authenticated pages — a deep-teal bar that matches the
- * game's chrome, sitting above the mint canvas. Rendered by the (app) layout.
+ * Top navigation for authenticated pages — the terminal chrome bar. Stays dark
+ * in both themes so the app reads as a trading application at a glance.
+ * Rendered by the (app) layout.
  *
  * Plain component (no client hooks): logout is a native form POST to the
  * signout route handler, so it works without JavaScript.
@@ -17,19 +18,19 @@ export function AppHeader({
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-20 bg-teal-deep text-white shadow-[0_6px_20px_-10px_rgba(13,59,55,0.7)]">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+    <header className="sticky top-0 z-20 border-b border-white/8 bg-chrome text-white">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-6 px-6">
         <Link
           href="/"
-          className="font-display text-xl font-extrabold tracking-tight text-white"
+          className="text-[0.9375rem] font-semibold tracking-tight text-white"
         >
-          Stock<span className="text-buy-bright">Xchange</span>
+          Stock<span className="text-white/55">Xchange</span>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           <Link
             href="/how-to-play"
-            className="hidden text-sm text-white/75 transition hover:text-white sm:inline"
+            className="hidden text-[0.8125rem] font-medium text-white/60 transition hover:text-white sm:inline"
           >
             How to Play
           </Link>
@@ -37,7 +38,7 @@ export function AppHeader({
           <Link
             href="/settings"
             aria-label="Settings"
-            className="text-white/75 transition hover:text-white"
+            className="text-white/55 transition hover:text-white"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
@@ -55,9 +56,9 @@ export function AppHeader({
 
           <Link
             href="/profile"
-            className="flex items-center gap-2 rounded-full transition hover:opacity-90"
+            className="flex items-center gap-2 transition hover:opacity-80"
           >
-            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-white/15 text-sm font-bold text-white">
+            <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-white/12 text-xs font-semibold text-white">
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -69,7 +70,7 @@ export function AppHeader({
                 initial
               )}
             </span>
-            <span className="hidden text-sm text-white/90 sm:inline">
+            <span className="hidden text-[0.8125rem] font-medium text-white/85 sm:inline">
               {displayName}
             </span>
           </Link>
@@ -77,7 +78,7 @@ export function AppHeader({
           <form action="/auth/signout" method="post">
             <button
               type="submit"
-              className="rounded-lg border border-white/25 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"
+              className="rounded-md border border-white/18 px-3 py-1.5 text-xs font-medium text-white/75 transition hover:border-white/30 hover:text-white"
             >
               Log out
             </button>

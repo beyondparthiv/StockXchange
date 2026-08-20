@@ -17,10 +17,10 @@ export function SettingRow({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-b border-ink/10 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 border-b border-line py-3.5 last:border-0 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <div className="text-sm font-semibold text-ink">{label}</div>
-        {hint && <div className="text-xs text-ink-soft">{hint}</div>}
+        <div className="text-[0.8125rem] font-medium text-ink">{label}</div>
+        {hint && <div className="mt-0.5 text-xs text-ink-faint">{hint}</div>}
       </div>
       <div>{children}</div>
     </div>
@@ -44,19 +44,19 @@ export function Stepper({
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ink/15 text-lg text-ink transition hover:bg-surface-2 disabled:opacity-40"
+        className="flex h-8 w-8 items-center justify-center rounded-md border border-line-strong text-base text-ink-soft transition hover:bg-surface-2 hover:text-ink disabled:opacity-35"
         aria-label="Decrease"
       >
         −
       </button>
-      <span className="w-10 text-center text-lg font-bold tabular-nums text-ink">
+      <span className="t-value w-10 text-center text-base text-ink">
         {value}
       </span>
       <button
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ink/15 text-lg text-ink transition hover:bg-surface-2 disabled:opacity-40"
+        className="flex h-8 w-8 items-center justify-center rounded-md border border-line-strong text-base text-ink-soft transition hover:bg-surface-2 hover:text-ink disabled:opacity-35"
         aria-label="Increase"
       >
         +
@@ -78,10 +78,10 @@ export function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+      className={`rounded-md border px-3 py-1.5 text-[0.8125rem] font-medium transition ${
         active
-          ? "border-teal bg-teal text-white"
-          : "border-ink/15 text-ink hover:bg-surface-2"
+          ? "border-accent bg-accent text-white"
+          : "border-line-strong text-ink-soft hover:bg-surface-2 hover:text-ink"
       }`}
     >
       {children}
@@ -106,7 +106,7 @@ export function Toggle({
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ${
-        checked ? "bg-teal" : "bg-ink/20"
+        checked ? "bg-accent" : "bg-ink/20"
       }`}
     >
       <span
@@ -129,15 +129,15 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex rounded-xl border border-ink/10 bg-surface-2 p-1">
+    <div className="inline-flex rounded-md border border-line bg-canvas-2 p-0.5">
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
-          className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+          className={`rounded-[4px] px-3 py-1.5 text-[0.8125rem] font-medium transition ${
             value === opt.value
-              ? "bg-teal text-white"
+              ? "bg-surface text-ink shadow-panel"
               : "text-ink-soft hover:text-ink"
           }`}
         >

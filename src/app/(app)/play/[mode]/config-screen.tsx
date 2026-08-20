@@ -59,8 +59,8 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
 
   if (!mounted) {
     return (
-      <main className="mx-auto w-full max-w-2xl px-4 py-12">
-        <div className="h-64 animate-pulse rounded-2xl border border-ink/5 bg-surface" />
+      <main className="mx-auto w-full max-w-2xl px-6 py-12">
+        <div className="h-64 animate-pulse rounded-lg border border-line bg-surface" />
       </main>
     );
   }
@@ -70,34 +70,26 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   // Ready summary (bots / solo only).
   if (ready && mode !== "online") {
     return (
-      <main className="mx-auto w-full max-w-2xl px-4 py-12">
-        <div className="rounded-2xl border border-ink/5 bg-surface p-6 text-center shadow-[0_18px_40px_-20px_rgba(13,59,55,0.45)]">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal">
-            Ready to play
-          </p>
-          <h1 className="font-display mt-2 text-2xl font-bold text-ink">
-            Game configured
-          </h1>
-          <p className="mt-1 text-sm text-ink-soft">
+      <main className="mx-auto w-full max-w-2xl px-6 py-12">
+        <div className="rounded-lg border border-line bg-surface p-6 text-center shadow-panel">
+          <p className="t-section">Ready to play</p>
+          <h1 className="t-title mt-2 text-ink">Game configured</h1>
+          <p className="mt-1.5 text-sm text-ink-soft">
             {meta.label} · {config.days} Days · {rounds} Rounds
           </p>
 
-          <dl className="mx-auto mt-6 grid max-w-sm grid-cols-2 gap-3 text-left text-sm">
+          <dl className="mx-auto mt-6 grid max-w-sm grid-cols-2 gap-y-2.5 text-left text-[0.8125rem]">
             <dt className="text-ink-soft">Starting cash</dt>
-            <dd className="text-right font-semibold text-ink">
+            <dd className="t-value text-right text-ink">
               {formatINR(config.startingCash)}
             </dd>
             <dt className="text-ink-soft">Companies</dt>
-            <dd className="text-right font-semibold text-ink">
-              {config.companies}
-            </dd>
+            <dd className="t-value text-right text-ink">{config.companies}</dd>
             <dt className="text-ink-soft">Round timer</dt>
-            <dd className="text-right font-semibold text-ink">
-              {config.roundTimerSec}s
-            </dd>
+            <dd className="t-value text-right text-ink">{config.roundTimerSec}s</dd>
           </dl>
 
-          <div className="mt-6 rounded-xl border border-ink/10 bg-surface-2 p-3 text-xs text-ink-soft">
+          <div className="mt-6 rounded-md border border-line bg-surface-2 px-3 py-2.5 text-xs text-ink-soft">
             {meta.nextStep}
           </div>
 
@@ -105,15 +97,15 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
             <button
               type="button"
               onClick={() => setReady(false)}
-              className="rounded-xl border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface-2"
+              className="rounded-md border border-line-strong px-4 py-2 text-[0.8125rem] font-medium text-ink transition hover:bg-surface-2"
             >
               Change settings
             </button>
             <Link
               href="/"
-              className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-deep"
+              className="rounded-md bg-accent px-4 py-2 text-[0.8125rem] font-medium text-white transition hover:bg-accent-hover"
             >
-              Back to tables
+              Back to modes
             </Link>
           </div>
         </div>
@@ -122,21 +114,19 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-12">
+    <main className="mx-auto w-full max-w-2xl px-6 py-12">
       <div className="mb-6">
         <Link
           href="/"
-          className="text-sm text-ink-soft transition hover:text-ink"
+          className="text-[0.8125rem] text-ink-soft transition hover:text-ink"
         >
-          ← Tables
+          ← Modes
         </Link>
-        <h1 className="font-display mt-3 text-3xl font-extrabold tracking-tight text-ink">
-          {meta.label}
-        </h1>
-        <p className="mt-1 text-sm text-ink-soft">{meta.description}</p>
+        <h1 className="t-display mt-3 text-ink">{meta.label}</h1>
+        <p className="mt-1.5 text-sm text-ink-soft">{meta.description}</p>
       </div>
 
-      <div className="rounded-2xl border border-ink/5 bg-surface px-6 py-2 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
+      <div className="rounded-lg border border-line bg-surface px-5 py-1 shadow-panel">
         <SettingRow label="Days" hint={`${rounds} rounds total (2 per day)`}>
           <Stepper
             value={config.days}
@@ -195,15 +185,13 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
             type="button"
             onClick={handleCreateRoom}
             disabled={creating}
-            className="w-full rounded-xl bg-teal px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep active:translate-y-px disabled:opacity-60"
+            className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-55"
           >
             {creating ? "Creating room…" : "Create room"}
           </button>
 
-          <div className="rule-ornament my-5">
-            <span className="text-xs font-semibold uppercase tracking-widest text-ink-soft">
-              or join
-            </span>
+          <div className="rule my-5">
+            <span className="t-section">or join</span>
           </div>
 
           <form onSubmit={handleJoin} className="flex gap-2">
@@ -212,12 +200,12 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               placeholder="Enter room code"
               maxLength={ROOM_CODE_LENGTH}
-              className="flex-1 rounded-xl border border-ink/10 bg-surface-2 px-3 py-2.5 text-sm uppercase tracking-widest text-ink placeholder-ink-soft/50 outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20"
+              className="flex-1 rounded-md border border-line-strong bg-surface-2 px-3 py-2.5 font-mono text-sm uppercase tracking-[0.2em] text-ink placeholder-ink-faint outline-none transition focus:border-accent focus:bg-surface"
             />
             <button
               type="submit"
               disabled={joinCode.trim().length !== ROOM_CODE_LENGTH}
-              className="rounded-xl border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-surface-2 disabled:opacity-40"
+              className="rounded-md border border-line-strong px-5 py-2.5 text-[0.8125rem] font-medium text-ink transition hover:bg-surface-2 disabled:opacity-40"
             >
               Join
             </button>
@@ -228,11 +216,11 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
           <button
             type="button"
             onClick={() => setReady(true)}
-            className="mt-6 w-full rounded-xl bg-teal px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-deep active:translate-y-px"
+            className="mt-6 w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent-hover"
           >
             Start game
           </button>
-          <p className="mt-2 text-center text-xs text-ink-soft">
+          <p className="mt-2.5 text-center text-xs text-ink-faint">
             {meta.nextStep}
           </p>
         </>

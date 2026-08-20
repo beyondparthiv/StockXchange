@@ -158,7 +158,7 @@ export default function Lobby({
   if (closed) {
     return (
       <main className="mx-auto w-full max-w-md px-4 py-20 text-center">
-        <h1 className="font-display text-2xl font-bold text-ink">
+        <h1 className="t-title text-ink">
           Room closed
         </h1>
         <p className="mt-2 text-sm text-ink-soft">
@@ -166,7 +166,7 @@ export default function Lobby({
         </p>
         <button
           onClick={() => router.push("/")}
-          className="mt-6 rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-deep"
+          className="mt-6 rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover"
         >
           Back to tables
         </button>
@@ -177,8 +177,8 @@ export default function Lobby({
   if (status === "in_game") {
     return (
       <main className="mx-auto w-full max-w-md px-4 py-20 text-center">
-        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-teal/30 border-t-teal" />
-        <h1 className="font-display text-2xl font-bold text-ink">
+        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-line-strong border-t-accent" />
+        <h1 className="t-title text-ink">
           Game starting…
         </h1>
         <p className="mt-2 text-sm text-ink-soft">
@@ -194,7 +194,7 @@ export default function Lobby({
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">
+      <h1 className="t-display text-ink">
         Lobby
       </h1>
       <p className="mt-1 text-sm text-ink-soft">
@@ -203,16 +203,16 @@ export default function Lobby({
       </p>
 
       {/* Room code */}
-      <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-ink/5 bg-surface p-6 shadow-[0_14px_30px_-20px_rgba(13,59,55,0.4)]">
+      <div className="mt-6 flex flex-col items-center gap-2 rounded-lg border border-line bg-surface p-6 shadow-panel">
         <span className="text-xs font-semibold uppercase tracking-widest text-ink-soft">
           Room code
         </span>
-        <div className="font-display text-4xl font-extrabold tracking-[0.3em] text-teal">
+        <div className="t-display tracking-[0.3em] text-accent">
           {room.code}
         </div>
         <button
           onClick={copyCode}
-          className="mt-1 rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold text-ink transition hover:bg-surface-2"
+          className="mt-1 rounded-lg border border-line-strong px-3 py-1.5 text-xs font-semibold text-ink transition hover:bg-surface-2"
         >
           {copied ? "Copied!" : "Copy code"}
         </button>
@@ -221,7 +221,7 @@ export default function Lobby({
       {/* Players */}
       <div className="mt-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-ink">
+          <h2 className="text-sm font-semibold text-ink">
             Players
           </h2>
           <span className="text-sm text-ink-soft">
@@ -233,10 +233,10 @@ export default function Lobby({
           {players.map((p) => (
             <div
               key={p.user_id}
-              className="flex items-center justify-between rounded-xl border border-ink/5 bg-surface px-4 py-3"
+              className="flex items-center justify-between rounded-md border border-line bg-surface px-4 py-3"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-soft text-sm font-bold text-teal">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent">
                   {p.display_name.charAt(0).toUpperCase()}
                 </span>
                 <div>
@@ -247,12 +247,12 @@ export default function Lobby({
                     )}
                   </div>
                   {p.is_host && (
-                    <div className="text-xs font-semibold text-teal">Host</div>
+                    <div className="text-xs font-semibold text-accent">Host</div>
                   )}
                 </div>
               </div>
               {p.is_ready ? (
-                <span className="rounded-full bg-buy/15 px-3 py-1 text-xs font-semibold text-buy">
+                <span className="rounded-full bg-up/15 px-3 py-1 text-xs font-semibold text-up">
                   Ready
                 </span>
               ) : (
@@ -266,7 +266,7 @@ export default function Lobby({
       </div>
 
       {/* Config summary */}
-      <div className="mt-6 grid grid-cols-2 gap-3 rounded-2xl border border-ink/5 bg-surface-2 p-4 text-sm sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-line bg-surface-2 p-4 text-sm sm:grid-cols-4">
         <div>
           <div className="text-ink-soft">Days</div>
           <div className="font-semibold text-ink">{room.config.days}</div>
@@ -293,10 +293,10 @@ export default function Lobby({
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <button
           onClick={toggleReady}
-          className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+          className={`flex-1 rounded-md px-4 py-3 text-sm font-semibold transition ${
             me?.is_ready
-              ? "border border-ink/15 text-ink hover:bg-surface-2"
-              : "bg-buy text-white hover:bg-buy-bright"
+              ? "border border-line-strong text-ink hover:bg-surface-2"
+              : "bg-up text-white hover:bg-up-bright"
           }`}
         >
           {me?.is_ready ? "Not ready" : "I'm ready"}
@@ -306,7 +306,7 @@ export default function Lobby({
           <button
             onClick={startGame}
             disabled={!canStart}
-            className="flex-1 rounded-xl bg-teal px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-deep disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex-1 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
             title={
               !canStart
                 ? `Need ${MIN_PLAYERS}+ players, all ready`
@@ -319,7 +319,7 @@ export default function Lobby({
 
         <button
           onClick={leave}
-          className="rounded-xl border border-sell/40 px-4 py-3 text-sm font-semibold text-sell transition hover:bg-sell/10"
+          className="rounded-md border border-down/40 px-4 py-3 text-sm font-semibold text-down transition hover:bg-down/10"
         >
           {isHost ? "Close room" : "Leave"}
         </button>

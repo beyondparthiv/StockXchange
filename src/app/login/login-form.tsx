@@ -110,7 +110,7 @@ export default function LoginForm() {
           New here?{" "}
           <Link
             href={`/signup${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`}
-            className="font-semibold text-teal hover:text-teal-deep"
+            className="font-semibold text-accent hover:text-accent-hover"
           >
             Create an account
           </Link>
@@ -132,7 +132,7 @@ export default function LoginForm() {
         <Divider label="or" />
 
         {/* Method switch */}
-        <div className="grid grid-cols-2 gap-1 rounded-xl border border-ink/10 bg-surface-2 p-1 text-xs">
+        <div className="grid grid-cols-2 gap-1 rounded-md border border-line bg-surface-2 p-1 text-xs">
           {(["password", "phone"] as Method[]).map((m) => (
             <button
               key={m}
@@ -144,7 +144,7 @@ export default function LoginForm() {
               }}
               className={`rounded-md py-1.5 font-semibold transition ${
                 method === m
-                  ? "bg-teal text-white"
+                  ? "bg-accent text-white"
                   : "text-ink-soft hover:text-ink"
               }`}
             >
