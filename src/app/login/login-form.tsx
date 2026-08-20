@@ -132,7 +132,7 @@ export default function LoginForm() {
         <Divider label="or" />
 
         {/* Method switch */}
-        <div className="grid grid-cols-2 gap-1 rounded-md border border-line bg-surface-2 p-1 text-xs">
+        <div className="grid grid-cols-2 gap-0.5 rounded-md border border-line bg-canvas-2 p-0.5 text-xs">
           {(["password", "phone"] as Method[]).map((m) => (
             <button
               key={m}
@@ -142,9 +142,9 @@ export default function LoginForm() {
                 setError(null);
                 setInfo(null);
               }}
-              className={`rounded-md py-1.5 font-semibold transition ${
+              className={`rounded-[4px] py-1.5 font-medium transition ${
                 method === m
-                  ? "bg-accent text-white"
+                  ? "bg-surface text-ink shadow-panel"
                   : "text-ink-soft hover:text-ink"
               }`}
             >
