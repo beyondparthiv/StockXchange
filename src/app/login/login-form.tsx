@@ -14,6 +14,7 @@ import {
 } from "@/components/auth/auth-ui";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { attempt } from "@/lib/supabase/errors";
 
 type Method = "password" | "phone";
 type PhoneStep = "enter-phone" | "enter-code";
@@ -50,10 +51,9 @@ export default function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await attempt(() =>
+      supabase.auth.signInWithPassword({ email, password }),
+    );
     setLoading(false);
     if (error) return setError(error.message);
     done();
@@ -62,12 +62,14 @@ export default function LoginForm() {
   async function handleGoogle() {
     setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
-    });
+    const { error } = await attempt(() =>
+      supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        },
+      }),
+    );
     if (error) {
       setLoading(false);
       setError(error.message);
@@ -80,7 +82,7 @@ export default function LoginForm() {
     setError(null);
     setInfo(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone });
+    const { error } = await attempt(() => supabase.auth.signInWithOtp({ phone }));
     setLoading(false);
     if (error) return setError(error.message);
     setPhoneStep("enter-code");
@@ -91,11 +93,9 @@ export default function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.verifyOtp({
-      phone,
-      token: otp,
-      type: "sms",
-    });
+    const { error } = await attempt(() =>
+      supabase.auth.verifyOtp({ phone, token: otp, type: "sms" }),
+    );
     setLoading(false);
     if (error) return setError(error.message);
     done();

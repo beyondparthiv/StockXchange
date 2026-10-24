@@ -10,6 +10,7 @@ import {
   SubmitButton,
 } from "@/components/auth/auth-ui";
 import { createClient } from "@/lib/supabase/client";
+import { attempt } from "@/lib/supabase/errors";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
@@ -33,7 +34,9 @@ export default function ResetPasswordPage() {
     setError(null);
     if (password !== confirm) return setError("Passwords do not match.");
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await attempt(() =>
+      supabase.auth.updateUser({ password }),
+    );
     setLoading(false);
     if (error) return setError(error.message);
     setDone(true);

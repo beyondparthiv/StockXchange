@@ -10,6 +10,7 @@ import {
   SubmitButton,
 } from "@/components/auth/auth-ui";
 import { createClient } from "@/lib/supabase/client";
+import { attempt } from "@/lib/supabase/errors";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export default function ForgotPasswordPage() {
@@ -27,9 +28,11 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     // The recovery email links back through /auth/callback, which exchanges the
     // code for a (recovery) session and forwards to /reset-password.
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
-    });
+    const { error } = await attempt(() =>
+      supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      }),
+    );
     setLoading(false);
     if (error) return setError(error.message);
     setSent(true);

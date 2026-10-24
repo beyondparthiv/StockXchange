@@ -14,6 +14,7 @@ import {
 } from "@/components/auth/auth-ui";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { attempt } from "@/lib/supabase/errors";
 
 export default function SignupForm() {
   const router = useRouter();
@@ -35,23 +36,25 @@ export default function SignupForm() {
     setError(null);
     setInfo(null);
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        // Stored on auth.users.raw_user_meta_data; the DB trigger copies
-        // display_name into the public.profiles row on creation.
-        data: { display_name: displayName },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
-    });
+    const { data, error } = await attempt(() =>
+      supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          // Stored on auth.users.raw_user_meta_data; the DB trigger copies
+          // display_name into the public.profiles row on creation.
+          data: { display_name: displayName },
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        },
+      }),
+    );
     setLoading(false);
 
     if (error) return setError(error.message);
 
     // If email confirmation is ON, there's no session yet — tell them to check
     // their inbox. If it's OFF, Supabase returns a session and we can proceed.
-    if (data.session) {
+    if (data?.session) {
       router.push(next);
       router.refresh();
     } else {
@@ -62,12 +65,14 @@ export default function SignupForm() {
   async function handleGoogle() {
     setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
-    });
+    const { error } = await attempt(() =>
+      supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        },
+      }),
+    );
     if (error) {
       setLoading(false);
       setError(error.message);

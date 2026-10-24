@@ -20,6 +20,7 @@ import { useGameConfigStore } from "@/lib/stores/game-config-store";
 import { createClient } from "@/lib/supabase/client";
 import type { UserSettings } from "@/lib/settings";
 import { applyTheme, type Theme } from "@/lib/theme";
+import { attempt } from "@/lib/supabase/errors";
 
 function Card({
   title,
@@ -66,17 +67,19 @@ export default function SettingsForm({
   async function handleSave() {
     setMsg(null);
     setSaving(true);
-    const { error } = await supabase.from("user_settings").upsert(
-      {
-        user_id: userId,
-        sound_enabled: s.sound_enabled,
-        theme: s.theme,
-        default_days: s.default_days,
-        default_starting_cash: s.default_starting_cash,
-        default_companies: s.default_companies,
-        default_round_timer: s.default_round_timer,
-      },
-      { onConflict: "user_id" },
+    const { error } = await attempt(() =>
+      supabase.from("user_settings").upsert(
+        {
+          user_id: userId,
+          sound_enabled: s.sound_enabled,
+          theme: s.theme,
+          default_days: s.default_days,
+          default_starting_cash: s.default_starting_cash,
+          default_companies: s.default_companies,
+          default_round_timer: s.default_round_timer,
+        },
+        { onConflict: "user_id" },
+      ),
     );
     setSaving(false);
     if (error) return setMsg({ kind: "error", text: error.message });
