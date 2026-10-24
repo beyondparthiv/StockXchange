@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
+import { Wordmark } from "@/components/wordmark";
 import { ThemeApply } from "@/components/theme-apply";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -24,8 +25,8 @@ export default async function AppLayout({
     return (
       <div className="flex flex-1 items-center justify-center px-6 py-16">
         <div className="w-full max-w-md text-center">
-          <h1 className="t-display text-ink">
-            Stock<span className="text-ink-faint">Xchange</span>
+          <h1 className="t-display">
+            <Wordmark />
           </h1>
           <div className="mt-6 rounded-lg border border-line bg-surface p-5 text-left text-sm text-ink shadow-panel">
             <p className="font-medium text-down">

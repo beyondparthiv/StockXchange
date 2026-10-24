@@ -54,10 +54,10 @@ export function CompanyLogo({
 }
 
 /**
- * The oversized, very low-opacity brand mark that sits behind a stock tile
- * (§5). Recognisable but never competing with the numbers — absolutely
- * positioned, clipped by the tile, inert to pointer events. Renders nothing
- * when the asset is missing rather than showing a giant monogram.
+ * The oversized, very low-opacity brand mark that sits behind a stock tile.
+ * Recognisable, but never competing with the numbers — absolutely positioned,
+ * clipped by the tile, inert to pointer events. Renders nothing when the asset
+ * is missing rather than showing a giant monogram.
  */
 export function CompanyWatermark({
   company,

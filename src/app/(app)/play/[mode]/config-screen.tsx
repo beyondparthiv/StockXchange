@@ -60,7 +60,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   if (!mounted) {
     return (
       <main className="mx-auto w-full max-w-2xl px-6 py-12">
-        <div className="h-64 animate-pulse rounded-lg border border-line bg-surface" />
+        <div className="skeleton h-64 rounded-lg border border-line" />
       </main>
     );
   }
@@ -71,7 +71,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   if (ready && mode !== "online") {
     return (
       <main className="mx-auto w-full max-w-2xl px-6 py-12">
-        <div className="rounded-lg border border-line bg-surface p-6 text-center shadow-panel">
+        <div className="animate-rise-in rounded-lg border border-line bg-surface p-6 text-center shadow-panel">
           <p className="t-section">Ready to play</p>
           <h1 className="t-title mt-2 text-ink">Game configured</h1>
           <p className="mt-1.5 text-sm text-ink-soft">
@@ -97,13 +97,13 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
             <button
               type="button"
               onClick={() => setReady(false)}
-              className="rounded-md border border-line-strong px-4 py-2 text-[0.8125rem] font-medium text-ink transition hover:bg-surface-2"
+              className="interactive rounded-md border border-line-strong px-4 py-2 text-[0.8125rem] font-medium text-ink hover:bg-surface-2"
             >
               Change settings
             </button>
             <Link
               href="/"
-              className="rounded-md bg-accent px-4 py-2 text-[0.8125rem] font-medium text-white transition hover:bg-accent-hover"
+              className="cta rounded-md bg-accent px-4 py-2 text-[0.8125rem] font-medium text-white hover:bg-accent-hover"
             >
               Back to modes
             </Link>
@@ -115,7 +115,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-12">
-      <div className="mb-6">
+      <div className="animate-rise-in mb-6">
         <Link
           href="/"
           className="text-[0.8125rem] text-ink-soft transition hover:text-ink"
@@ -126,7 +126,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
         <p className="mt-1.5 text-sm text-ink-soft">{meta.description}</p>
       </div>
 
-      <div className="rounded-lg border border-line bg-surface px-5 py-1 shadow-panel">
+      <div className="animate-rise-in rounded-lg border border-line bg-surface px-5 py-1 shadow-panel">
         <SettingRow label="Days" hint={`${rounds} rounds total (2 per day)`}>
           <Stepper
             value={config.days}
@@ -185,7 +185,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
             type="button"
             onClick={handleCreateRoom}
             disabled={creating}
-            className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-55"
+            className="cta w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-55"
           >
             {creating ? "Creating room…" : "Create room"}
           </button>
@@ -200,12 +200,12 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               placeholder="Enter room code"
               maxLength={ROOM_CODE_LENGTH}
-              className="flex-1 rounded-md border border-line-strong bg-surface-2 px-3 py-2.5 font-mono text-sm uppercase tracking-[0.2em] text-ink placeholder-ink-faint outline-none transition focus:border-accent focus:bg-surface"
+              className="interactive flex-1 rounded-md border border-line-strong bg-surface-2 px-3 py-2.5 font-mono text-sm uppercase tracking-[0.2em] text-ink placeholder-ink-faint outline-none focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_var(--c-accent-ring)]"
             />
             <button
               type="submit"
               disabled={joinCode.trim().length !== ROOM_CODE_LENGTH}
-              className="rounded-md border border-line-strong px-5 py-2.5 text-[0.8125rem] font-medium text-ink transition hover:bg-surface-2 disabled:opacity-40"
+              className="interactive rounded-md border border-line-strong px-5 py-2.5 text-[0.8125rem] font-medium text-ink hover:bg-surface-2 disabled:opacity-40"
             >
               Join
             </button>
@@ -216,7 +216,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
           <button
             type="button"
             onClick={() => setReady(true)}
-            className="mt-6 w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent-hover"
+            className="cta mt-6 w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
           >
             Start game
           </button>

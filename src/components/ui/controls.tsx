@@ -44,7 +44,7 @@ export function Stepper({
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className="flex h-8 w-8 items-center justify-center rounded-md border border-line-strong text-base text-ink-soft transition hover:bg-surface-2 hover:text-ink disabled:opacity-35"
+        className="flex interactive h-8 w-8 items-center justify-center rounded-md border border-line-strong text-base text-ink-soft hover:border-accent hover:bg-surface-2 hover:text-ink disabled:opacity-35"
         aria-label="Decrease"
       >
         −
@@ -56,7 +56,7 @@ export function Stepper({
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className="flex h-8 w-8 items-center justify-center rounded-md border border-line-strong text-base text-ink-soft transition hover:bg-surface-2 hover:text-ink disabled:opacity-35"
+        className="flex interactive h-8 w-8 items-center justify-center rounded-md border border-line-strong text-base text-ink-soft hover:border-accent hover:bg-surface-2 hover:text-ink disabled:opacity-35"
         aria-label="Increase"
       >
         +
@@ -78,7 +78,7 @@ export function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-md border px-3 py-1.5 text-[0.8125rem] font-medium transition ${
+      className={`interactive rounded-md border px-3 py-1.5 text-[0.8125rem] font-medium ${
         active
           ? "border-accent bg-accent text-white"
           : "border-line-strong text-ink-soft hover:bg-surface-2 hover:text-ink"
@@ -105,12 +105,12 @@ export function Toggle({
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ${
+      className={`interactive relative inline-flex h-6 w-11 shrink-0 items-center rounded-full ${
         checked ? "bg-accent" : "bg-ink/20"
       }`}
     >
       <span
-        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-[cubic-bezier(.2,.7,.3,1)] ${
           checked ? "translate-x-5" : "translate-x-0.5"
         }`}
       />
@@ -135,7 +135,7 @@ export function Segmented<T extends string>({
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
-          className={`rounded-[4px] px-3 py-1.5 text-[0.8125rem] font-medium transition ${
+          className={`interactive rounded-[4px] px-3 py-1.5 text-[0.8125rem] font-medium ${
             value === opt.value
               ? "bg-surface text-ink shadow-panel"
               : "text-ink-soft hover:text-ink"

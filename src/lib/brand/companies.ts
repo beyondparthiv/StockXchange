@@ -11,7 +11,7 @@
  * up automatically (see public/logos/README.md). Until then it renders a clean
  * monogram in the brand accent — never a substitute icon or emoji.
  *
- * `accent` is used sparingly (§5): a hairline border, a low-opacity watermark,
+ * `accent` is used sparingly: a hairline border, a low-opacity watermark,
  * a small identity dot. It is never the tile's fill. Green and red stay
  * reserved for market direction.
  */

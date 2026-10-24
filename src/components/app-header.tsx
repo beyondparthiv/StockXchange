@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Wordmark } from "@/components/wordmark";
 
 /**
  * Top navigation for authenticated pages — the terminal chrome bar. Stays dark
@@ -22,23 +24,25 @@ export function AppHeader({
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-6 px-6">
         <Link
           href="/"
-          className="text-[0.9375rem] font-semibold tracking-tight text-white"
+          className="text-[0.9375rem] text-white"
         >
-          Stock<span className="text-white/55">Xchange</span>
+          <Wordmark onChrome />
         </Link>
 
         <div className="flex items-center gap-5">
           <Link
             href="/how-to-play"
-            className="hidden text-[0.8125rem] font-medium text-white/60 transition hover:text-white sm:inline"
+            className="interactive hidden text-[0.8125rem] font-medium text-white/60 hover:text-white sm:inline"
           >
             How to Play
           </Link>
 
+          <ThemeToggle persist className="text-white/55 hover:bg-white/8 hover:text-white" />
+
           <Link
             href="/settings"
             aria-label="Settings"
-            className="text-white/55 transition hover:text-white"
+            className="text-white/55 transition-[transform,color] duration-300 ease-[cubic-bezier(.2,.7,.3,1)] hover:rotate-90 hover:text-white"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
@@ -56,7 +60,7 @@ export function AppHeader({
 
           <Link
             href="/profile"
-            className="flex items-center gap-2 transition hover:opacity-80"
+            className="interactive flex items-center gap-2 hover:opacity-80"
           >
             <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-white/12 text-xs font-semibold text-white">
               {avatarUrl ? (
@@ -78,7 +82,7 @@ export function AppHeader({
           <form action="/auth/signout" method="post">
             <button
               type="submit"
-              className="rounded-md border border-white/18 px-3 py-1.5 text-xs font-medium text-white/75 transition hover:border-white/30 hover:text-white"
+              className="interactive rounded-md border border-white/18 px-3 py-1.5 text-xs font-medium text-white/75 hover:border-white/30 hover:bg-white/5 hover:text-white"
             >
               Log out
             </button>

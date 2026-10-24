@@ -52,7 +52,7 @@ function ModeIcon({ mode }: { mode: GameMode }) {
 export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12">
-      <div className="mb-8">
+      <div className="animate-rise-in mb-8">
         <p className="t-section">New game</p>
         <h1 className="t-display mt-2 text-ink">Select a mode</h1>
         <p className="mt-1.5 text-sm text-ink-soft">
@@ -60,17 +60,17 @@ export default function HomePage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {GAME_MODES.map((mode) => {
           const meta = MODE_META[mode];
           return (
             <Link
               key={mode}
               href={`/play/${mode}`}
-              className="group flex flex-col rounded-lg border border-line bg-surface p-5 shadow-panel transition hover:border-line-strong"
+              className="group card-hover flex flex-col rounded-lg border border-line bg-surface p-5 shadow-panel"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-md bg-surface-2 text-ink-soft transition group-hover:text-accent">
+                <span className="interactive flex h-9 w-9 items-center justify-center rounded-md bg-surface-2 text-ink-soft group-hover:bg-accent-soft group-hover:text-accent">
                   <ModeIcon mode={mode} />
                 </span>
                 <span className="t-section">{meta.tagline}</span>
@@ -84,7 +84,7 @@ export default function HomePage() {
               <span className="mt-5 inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-accent">
                 Configure
                 <svg
-                  className="h-4 w-4 transition"
+                  className="nudge h-4 w-4"
                   viewBox="0 0 24 24"
                   fill="none"
                   aria-hidden="true"
@@ -103,7 +103,7 @@ export default function HomePage() {
         })}
       </div>
 
-      <div className="mt-4 divide-y divide-line rounded-lg border border-line bg-surface shadow-panel">
+      <div className="animate-rise-in mt-4 divide-y divide-line rounded-lg border border-line bg-surface shadow-panel">
         <div className="flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
           <div>
             <h3 className="text-sm font-semibold text-ink">Have a room code?</h3>
@@ -125,7 +125,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/how-to-play"
-            className="shrink-0 rounded-md border border-line-strong px-4 py-2 text-[0.8125rem] font-medium text-ink transition hover:bg-surface-2"
+            className="interactive shrink-0 rounded-md border border-line-strong px-4 py-2 text-[0.8125rem] font-medium text-ink hover:bg-surface-2"
           >
             How to Play
           </Link>

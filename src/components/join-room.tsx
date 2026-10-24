@@ -27,12 +27,12 @@ export function JoinRoom() {
         placeholder="Room code"
         maxLength={ROOM_CODE_LENGTH}
         aria-label="Room code"
-        className="w-40 rounded-md border border-line-strong bg-surface-2 px-3 py-2 font-mono text-sm uppercase tracking-[0.2em] text-ink placeholder-ink-faint outline-none transition focus:border-accent focus:bg-surface"
+        className="interactive w-40 rounded-md border border-line-strong bg-surface-2 px-3 py-2 font-mono text-sm uppercase tracking-[0.2em] text-ink placeholder-ink-faint outline-none focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_var(--c-accent-ring)]"
       />
       <button
         type="submit"
         disabled={code.trim().length !== ROOM_CODE_LENGTH}
-        className="shrink-0 rounded-md bg-accent px-5 py-2 text-[0.8125rem] font-medium text-white transition hover:bg-accent-hover disabled:opacity-40"
+        className="cta shrink-0 rounded-md bg-accent px-5 py-2 text-[0.8125rem] font-medium text-white hover:bg-accent-hover disabled:opacity-40"
       >
         Join
       </button>

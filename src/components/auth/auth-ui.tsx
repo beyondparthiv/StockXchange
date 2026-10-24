@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { InputHTMLAttributes, ReactNode } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Wordmark } from "@/components/wordmark";
 
 /**
  * Presentational building blocks shared across the auth pages. Follows the
@@ -19,19 +21,23 @@ export function AuthShell({
   footer?: ReactNode;
 }) {
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm">
+    <div className="relative flex flex-1 items-center justify-center px-6 py-16">
+      <div className="absolute right-6 top-6">
+        <ThemeToggle className="border border-line text-ink-soft hover:bg-surface-2 hover:text-ink" />
+      </div>
+
+      <div className="stagger w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link
             href="/"
-            className="t-title tracking-tight text-ink"
+            className="interactive inline-block text-2xl"
           >
-            Stock<span className="text-ink-faint">Xchange</span>
+            <Wordmark />
           </Link>
-          <h1 className="t-display mt-6 text-ink">
-            {title}
-          </h1>
-          {subtitle && <p className="mt-1.5 text-sm text-ink-soft">{subtitle}</p>}
+          <h1 className="t-display mt-6 text-ink">{title}</h1>
+          {subtitle && (
+            <p className="mt-1.5 text-sm text-ink-soft">{subtitle}</p>
+          )}
         </div>
 
         <div className="rounded-lg border border-line bg-surface p-6 shadow-panel">
@@ -57,7 +63,7 @@ export function Field({
       </span>
       <input
         {...props}
-        className="w-full rounded-md border border-line-strong bg-surface-2 px-3 py-2.5 text-sm text-ink placeholder-ink-faint outline-none transition focus:border-accent focus:bg-surface disabled:opacity-50"
+        className="interactive w-full rounded-md border border-line-strong bg-surface-2 px-3 py-2.5 text-sm text-ink placeholder-ink-faint outline-none focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_var(--c-accent-ring)] disabled:opacity-50"
       />
     </label>
   );
@@ -73,7 +79,7 @@ export function SubmitButton({
       {...props}
       type="submit"
       disabled={loading || props.disabled}
-      className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-55"
+      className="cta w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-55"
     >
       {loading ? "Please wait…" : children}
     </button>
@@ -92,7 +98,7 @@ export function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-2 rounded-md border border-line-strong bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-55"
+      className="interactive flex w-full items-center justify-center gap-2 rounded-md border border-line-strong bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-line-strong hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-55"
     >
       <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -139,7 +145,7 @@ export function Alert({
       ? "border-down/30 bg-down/8 text-down"
       : "border-up/30 bg-up/8 text-up";
   return (
-    <div className={`rounded-md border px-3 py-2 text-xs font-medium ${styles}`}>
+    <div className={`animate-rise-in rounded-md border px-3 py-2 text-xs font-medium ${styles}`}>
       {children}
     </div>
   );

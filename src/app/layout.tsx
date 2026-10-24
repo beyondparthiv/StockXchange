@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
+import { MarketBackdrop } from "@/components/market-backdrop";
 import "./globals.css";
 
 // Inter — the neutral UI sans used by most financial dashboards. Variable, so
@@ -40,6 +41,7 @@ export default function RootLayout({
         <Script id="theme-init" strategy="beforeInteractive">
           {themeInit}
         </Script>
+        <MarketBackdrop />
         {children}
       </body>
     </html>

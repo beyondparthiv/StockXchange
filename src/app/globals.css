@@ -15,85 +15,88 @@
   toggling `data-theme` on <html> re-colours the whole app — every
   bg-surface / text-ink / border-ink utility follows automatically.
 
-  Token names are intentionally semantic (canvas/surface/ink/line/accent/
-  chrome/up/down). The older mint/teal/buy/sell names are kept as aliases so
-  existing markup keeps working while it migrates.
+  Token names are intentionally semantic: canvas/surface/ink/line/accent/
+  chrome/up/down.
 */
 
 :root {
-  /* Foundation — neutral, never tinted toward a brand hue. */
-  --c-canvas: #f5f6f8; /* page background */
-  --c-canvas-2: #eceef2; /* recessed strips */
-  --c-surface: #ffffff; /* panels / cards */
-  --c-surface-2: #f2f4f7; /* inputs, subtle fills, table stripes */
-  --c-surface-3: #e8ebf0; /* hover / pressed fills */
+  /* Light: paper-white trading sheet. Green and red carry all the colour. */
+  --c-canvas: #ffffff;
+  --c-canvas-2: #f2f7f4;
+  --c-surface: #ffffff;
+  --c-surface-2: #f4f8f6;
 
-  /* Typography ink ramp. */
-  --c-ink: #0f1319; /* primary text */
-  --c-ink-soft: #5b6472; /* secondary text, labels */
-  --c-ink-faint: #8b94a3; /* tertiary, timestamps, units */
+  --c-ink: #06120c;
+  --c-ink-soft: #566b60;
+  --c-ink-faint: #879890;
 
-  /* Structure. Borders do the work that shadows used to. */
-  --c-line: rgba(15, 19, 25, 0.1);
-  --c-line-strong: rgba(15, 19, 25, 0.16);
+  --c-line: rgba(6, 18, 12, 0.1);
+  --c-line-strong: rgba(6, 18, 12, 0.18);
 
-  /* Interactive accent — restrained institutional blue. */
-  --c-accent: #2563eb;
-  --c-accent-hover: #1d4ed8;
-  --c-accent-soft: #e8effd;
-  --c-accent-ring: rgba(37, 99, 235, 0.28);
+  /* Green is the interactive accent as well as "up" — one colour, one meaning. */
+  --c-accent: #00a848;
+  --c-accent-hover: #008f3d;
+  --c-accent-soft: rgba(0, 168, 72, 0.1);
+  --c-accent-ring: rgba(0, 168, 72, 0.3);
 
-  /* Chrome stays dark in both themes — the terminal top bar. */
-  --c-chrome: #0d1015;
-  --c-chrome-2: #161a21;
+  --c-chrome: #04120a;
 
-  /* Market movement. The only place green and red are allowed. */
-  --c-up: #0a8f4d;
-  --c-up-bright: #0ba85a;
-  --c-down: #d13b34;
-  --c-down-bright: #e2483f;
-  --c-flat: var(--c-ink-faint);
+  --c-up: #00a848;
+  --c-up-bright: #00c853;
+  --c-down: #e0342a;
+  --c-down-bright: #ff4438;
 
-  --c-warn: #b45309;
+  --sh-panel: 0 1px 2px rgba(6, 18, 12, 0.05);
+  --sh-lift: 0 10px 28px -12px rgba(6, 18, 12, 0.2);
 
-  /* Depth: borders + very low-alpha shadows. No glow. */
-  --sh-panel: 0 1px 2px rgba(15, 19, 25, 0.04);
-  --sh-raised: 0 4px 12px -4px rgba(15, 19, 25, 0.1);
-  --sh-overlay: 0 12px 32px -12px rgba(15, 19, 25, 0.22);
+  --c-glow: rgba(0, 168, 72, 0.08);
+  --c-glow-2: rgba(224, 52, 42, 0.05);
+
+  /* Backdrop ink — the animated market layer behind the UI. */
+  --c-tape-up: rgba(0, 168, 72, 0.5);
+  --c-tape-down: rgba(224, 52, 42, 0.45);
+  --c-tape-ink: rgba(6, 18, 12, 0.3);
+  --c-grid: rgba(6, 18, 12, 0.05);
+  --backdrop-opacity: 0.3;
 }
 
 [data-theme="dark"] {
-  --c-canvas: #0b0d11; /* near-black charcoal */
-  --c-canvas-2: #0f1216;
-  --c-surface: #14171d;
-  --c-surface-2: #1a1e25;
-  --c-surface-3: #222731;
+  /* Dark: the exchange board. Near-black with a green cast, white type. */
+  --c-canvas: #040806;
+  --c-canvas-2: #070d0a;
+  --c-surface: #0b130f;
+  --c-surface-2: #111b16;
 
-  --c-ink: #e7eaef;
-  --c-ink-soft: #98a1af;
-  --c-ink-faint: #6c7684;
+  --c-ink: #ffffff;
+  --c-ink-soft: #9db3a7;
+  --c-ink-faint: #6a7e73;
 
-  --c-line: rgba(255, 255, 255, 0.09);
-  --c-line-strong: rgba(255, 255, 255, 0.16);
+  --c-line: rgba(255, 255, 255, 0.1);
+  --c-line-strong: rgba(255, 255, 255, 0.2);
 
-  --c-accent: #4d8dff;
-  --c-accent-hover: #6ba0ff;
-  --c-accent-soft: rgba(77, 141, 255, 0.14);
-  --c-accent-ring: rgba(77, 141, 255, 0.32);
+  --c-accent: #00e676;
+  --c-accent-hover: #4dff9e;
+  --c-accent-soft: rgba(0, 230, 118, 0.14);
+  --c-accent-ring: rgba(0, 230, 118, 0.35);
 
-  --c-chrome: #0d1015;
-  --c-chrome-2: #171b22;
+  --c-chrome: #04100a;
 
-  --c-up: #1fbf6b;
-  --c-up-bright: #34d67f;
-  --c-down: #f0524a;
-  --c-down-bright: #ff6a61;
+  --c-up: #00e676;
+  --c-up-bright: #5cffa8;
+  --c-down: #ff4d4d;
+  --c-down-bright: #ff7a7a;
 
-  --c-warn: #e0a13a;
+  --sh-panel: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --sh-lift: 0 10px 30px -12px rgba(0, 0, 0, 0.8);
 
-  --sh-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --sh-raised: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
-  --sh-overlay: 0 12px 32px -12px rgba(0, 0, 0, 0.65);
+  --c-glow: rgba(0, 230, 118, 0.1);
+  --c-glow-2: rgba(255, 77, 77, 0.06);
+
+  --c-tape-up: rgba(0, 230, 118, 0.55);
+  --c-tape-down: rgba(255, 77, 77, 0.5);
+  --c-tape-ink: rgba(255, 255, 255, 0.3);
+  --c-grid: rgba(255, 255, 255, 0.045);
+  --backdrop-opacity: 0.55;
 }
 
 @theme {
@@ -102,7 +105,6 @@
   --color-canvas-2: var(--c-canvas-2);
   --color-surface: var(--c-surface);
   --color-surface-2: var(--c-surface-2);
-  --color-surface-3: var(--c-surface-3);
 
   --color-ink: var(--c-ink);
   --color-ink-soft: var(--c-ink-soft);
@@ -116,35 +118,18 @@
   --color-accent-soft: var(--c-accent-soft);
 
   --color-chrome: var(--c-chrome);
-  --color-chrome-2: var(--c-chrome-2);
 
   --color-up: var(--c-up);
   --color-up-bright: var(--c-up-bright);
   --color-down: var(--c-down);
   --color-down-bright: var(--c-down-bright);
-  --color-flat: var(--c-flat);
-  --color-warn: var(--c-warn);
-
-  /* --- Compatibility aliases (older markup) --- */
-  --color-mint: var(--c-canvas);
-  --color-mint-2: var(--c-canvas-2);
-  --color-teal: var(--c-accent);
-  --color-teal-deep: var(--c-chrome);
-  --color-teal-soft: var(--c-accent-soft);
-  --color-buy: var(--c-up);
-  --color-buy-bright: var(--c-up-bright);
-  --color-sell: var(--c-down);
-  --color-sell-bright: var(--c-down-bright);
-  --color-classic-green: var(--c-up);
-  --color-classic-red: var(--c-down);
-  --color-gold: var(--c-warn);
 
   /* --- Typography --- */
   --font-sans: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--ff-mono), ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* --- Radii (§23: restrained, no floating pills) --- */
+  /* --- Radii. Overrides Tailwind's defaults so rounded-* stays
+     restrained everywhere, including in markup written later. --- */
   --radius-xs: 2px;
   --radius-sm: 3px;
   --radius-md: 5px;
@@ -153,10 +138,12 @@
   --radius-2xl: 10px;
   --radius-3xl: 14px;
 
-  /* --- Depth (§24: borders first, shadows barely there) --- */
+  /* --- Depth --- */
   --shadow-panel: var(--sh-panel);
-  --shadow-raised: var(--sh-raised);
-  --shadow-overlay: var(--sh-overlay);
+  --shadow-lift: var(--sh-lift);
+
+  /* --- Motion: one easing curve shared by every transition --- */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
 body {
@@ -169,8 +156,8 @@ body {
 }
 
 /*
-  Type scale (§21). One family, hierarchy carried by size/weight/tracking
-  rather than by decoration. Applied as classes so components stay declarative.
+  Type scale. One family, hierarchy carried by size/weight/tracking rather
+  than by decoration. Applied as classes so components stay declarative.
 */
 .t-display {
   font-size: 1.75rem;
@@ -242,7 +229,7 @@ body {
   outline-offset: 2px;
 }
 
-/* --- Motion (§20): subtle, communicates state change, never bouncy. --- */
+/* --- Motion: subtle, communicates state change, never bouncy. --- */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -283,7 +270,7 @@ body {
   animation: fade-in 180ms ease-out both;
 }
 .animate-rise-in {
-  animation: rise-in 220ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation: rise-in 320ms var(--ease-out) both;
 }
 .flash-up {
   animation: value-flash-up 700ms ease-out;
@@ -292,11 +279,545 @@ body {
   animation: value-flash-down 700ms ease-out;
 }
 
+/*
+  Stagger: children enter in sequence rather than all at once, which reads as
+  the interface assembling itself instead of popping. Capped at 8 — past that
+  the last item waits long enough to feel broken.
+*/
+.stagger > * {
+  animation: rise-in 360ms var(--ease-out) both;
+}
+.stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 45ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 90ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 135ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 180ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 225ms;
+}
+.stagger > *:nth-child(7) {
+  animation-delay: 270ms;
+}
+.stagger > *:nth-child(n + 8) {
+  animation-delay: 315ms;
+}
+
+/*
+  Ambient backdrop. A single very low-opacity accent wash anchored to the top
+  of the viewport, so a mostly-empty page has some depth without becoming a
+  decorated one. Fixed, inert, and behind everything.
+*/
+.ambient::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      680px 420px at 50% -8%,
+      var(--c-glow) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      420px 300px at 88% 8%,
+      var(--c-glow-2) 0%,
+      transparent 72%
+    );
+}
+
+/*
+  Interactive surfaces. One shared transition so hover/press feel identical
+  everywhere, and a press that actually depresses rather than bouncing.
+*/
+.interactive {
+  transition:
+    background-color 160ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    color 160ms var(--ease-out),
+    box-shadow 220ms var(--ease-out),
+    transform 140ms var(--ease-out);
+}
+.interactive:active {
+  transform: translateY(1px);
+}
+
+/* Panels that respond to the cursor: a 2px lift, never more. */
+.card-hover {
+  transition:
+    border-color 200ms var(--ease-out),
+    box-shadow 240ms var(--ease-out),
+    transform 240ms var(--ease-out);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-line-strong);
+  box-shadow: var(--sh-lift);
+}
+
+/* Primary action: the accent gains a soft halo on hover, not a glow. */
+.cta {
+  position: relative;
+  transition:
+    background-color 160ms var(--ease-out),
+    box-shadow 240ms var(--ease-out),
+    transform 140ms var(--ease-out);
+}
+.cta:hover:not(:disabled) {
+  box-shadow: 0 4px 16px -4px var(--c-accent-ring);
+}
+.cta:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Arrow/chevron that advances on hover of its parent. */
+.group:hover .nudge {
+  transform: translateX(3px);
+}
+.nudge {
+  transition: transform 220ms var(--ease-out);
+}
+
+/*
+  Theme toggle icons. Driven by the [data-theme] attribute rather than React
+  state so the correct icon is right in the first painted frame — the inline
+  head script sets the attribute before paint.
+*/
+.theme-icon {
+  grid-area: 1 / 1;
+  height: 18px;
+  width: 18px;
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 320ms var(--ease-out);
+}
+.theme-icon-sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+.theme-icon-moon {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+[data-theme="dark"] .theme-icon-sun {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+[data-theme="dark"] .theme-icon-moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* =========================================================================
+   MARKET BACKDROP
+   The animated layer behind the app: tape, candles, price line, coins, news.
+   Everything is fixed, inert, GPU-composited (transform/opacity only), and
+   scaled by --backdrop-opacity so a theme can turn the whole thing down.
+   ========================================================================= */
+
+.market-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  opacity: var(--backdrop-opacity);
+  contain: layout paint;
+  /*
+    Centre vignette. The content column lives in the middle of the viewport,
+    so the backdrop is masked down to ~15% there and ramps back to full at the
+    edges. This is what keeps the tape from running through headings without
+    having to position every layer around the text.
+  */
+  -webkit-mask-image: radial-gradient(
+    ellipse 62% 52% at 50% 46%,
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.75) 75%,
+    #000 92%
+  );
+  mask-image: radial-gradient(
+    ellipse 62% 52% at 50% 46%,
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.75) 75%,
+    #000 92%
+  );
+}
+
+/* --- 1. Drifting graph paper --- */
+.mb-grid {
+  position: absolute;
+  inset: -80px 0;
+  background-image:
+    linear-gradient(var(--c-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c-grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: mb-drift 24s linear infinite;
+}
+@keyframes mb-drift {
+  to {
+    transform: translateY(-48px);
+  }
+}
+
+/* --- 2. Green/red ambient wash --- */
+.mb-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(720px 440px at 18% 0%, var(--c-glow), transparent 70%),
+    radial-gradient(560px 380px at 86% 12%, var(--c-glow-2), transparent 72%),
+    radial-gradient(680px 420px at 50% 100%, var(--c-glow), transparent 70%);
+  animation: mb-breathe 14s ease-in-out infinite;
+}
+@keyframes mb-breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* --- 3. Ticker tapes --- */
+.mb-tapes {
+  position: absolute;
+  inset-inline: 0;
+  top: 3.5%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+.mb-tape {
+  overflow: hidden;
+  white-space: nowrap;
+  /*
+    Fade at both edges AND cut a hole through the middle. Content is a centred
+    column, so without the centre gap the tape reads straight through headings
+    at whatever viewport height happens to line them up. Masking by x-position
+    fixes it at every height, which a vertical offset cannot.
+  */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 8%,
+    #000 28%,
+    transparent 38%,
+    transparent 62%,
+    #000 72%,
+    #000 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 8%,
+    #000 28%,
+    transparent 38%,
+    transparent 62%,
+    #000 72%,
+    #000 92%,
+    transparent 100%
+  );
+}
+.mb-tape-track {
+  display: inline-flex;
+  animation: mb-scroll 42s linear infinite;
+}
+.mb-tape-rev .mb-tape-track {
+  animation-duration: 58s;
+  animation-direction: reverse;
+}
+.mb-tape-group {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+@keyframes mb-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.mb-quote {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0 1.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+.mb-quote-t {
+  color: var(--c-tape-ink);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.mb-quote-p {
+  color: var(--c-tape-ink);
+}
+.mb-up {
+  color: var(--c-tape-up);
+}
+.mb-down {
+  color: var(--c-tape-down);
+}
+
+/* --- 4. Self-drawing price line --- */
+.mb-line {
+  position: absolute;
+  inset-inline: 0;
+  top: 28%;
+  width: 100%;
+  height: 34vh;
+  opacity: 0.55;
+}
+.mb-line-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: mb-draw 11s ease-in-out infinite;
+}
+@keyframes mb-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  55%,
+  80% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* --- 5. Candlestick session --- */
+.mb-candles {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 3.25rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 90px;
+  padding: 0 4vw;
+}
+.mb-candle {
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+  border-radius: 1px;
+  transform-origin: bottom;
+  animation: mb-candle-grow 6s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+/* the wick */
+.mb-candle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -10px;
+  bottom: -8px;
+  width: 1px;
+  transform: translateX(-50%);
+  background: currentColor;
+  opacity: 0.6;
+}
+.mb-candle-up {
+  color: var(--c-tape-up);
+  background: var(--c-tape-up);
+}
+.mb-candle-down {
+  color: var(--c-tape-down);
+  background: var(--c-tape-down);
+}
+@keyframes mb-candle-grow {
+  0%,
+  100% {
+    transform: scaleY(0.72);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 0.9;
+  }
+}
+
+/* --- 6. Rising coins --- */
+.mb-coins {
+  position: absolute;
+  inset: 0;
+}
+.mb-coin {
+  position: absolute;
+  bottom: -60px;
+  display: grid;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border: 1.5px solid var(--c-tape-up);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c-tape-up) 14%, transparent);
+  color: var(--c-tape-up);
+  font-family: var(--font-mono);
+  font-size: calc(var(--size) * 0.52);
+  font-weight: 700;
+  opacity: 0;
+  animation: mb-rise var(--dur) linear infinite;
+  animation-delay: var(--delay);
+}
+@keyframes mb-rise {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-105vh) rotate(260deg);
+    opacity: 0;
+  }
+}
+
+/* --- 7. News crawl --- */
+.mb-news {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0.9rem;
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+}
+.mb-news-track {
+  display: inline-flex;
+  animation: mb-scroll 64s linear infinite;
+}
+.mb-news-group {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.mb-headline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 2.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--c-tape-ink);
+}
+.mb-news-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-tape-down);
+}
+
+@media (max-width: 640px) {
+  /* Fewer moving parts on small screens — and the candles would collide. */
+  .mb-candles,
+  .mb-line {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-grid,
+  .mb-wash,
+  .mb-tape-track,
+  .mb-line-path,
+  .mb-candle,
+  .mb-coin,
+  .mb-news-track {
+    animation: none;
+  }
+  /* Without motion the coins never travel into view, so just hide them. */
+  .mb-coins {
+    display: none;
+  }
+  .mb-line-path {
+    stroke-dashoffset: 0;
+  }
+}
+
+
+/* =========================================================================
+   WORDMARK
+   The product name has to stay legible over a moving backdrop, so it carries
+   its own halo in the canvas colour — that punches the background out from
+   behind the glyphs rather than relying on the backdrop staying out of the
+   way. "Xchange" takes the accent so the name reads as a brand, not as grey
+   filler.
+   ========================================================================= */
+.wordmark {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  text-shadow:
+    0 0 10px var(--c-canvas),
+    0 0 22px var(--c-canvas),
+    0 0 36px var(--c-canvas);
+}
+.wordmark-x {
+  color: var(--color-accent);
+}
+
+/* Skeleton shimmer — calmer than a pulsing opacity block. */
+@keyframes shimmer {
+  100% {
+    background-position: 200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 25%,
+    var(--color-canvas-2) 37%,
+    var(--color-surface-2) 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
   .animate-rise-in,
   .flash-up,
-  .flash-down {
+  .flash-down,
+  .stagger > *,
+  .skeleton {
     animation: none;
+  }
+  .interactive,
+  .card-hover,
+  .cta,
+  .nudge,
+  .theme-icon {
+    transition: none;
+  }
+  .card-hover:hover,
+  .interactive:active,
+  .cta:active:not(:disabled) {
+    transform: none;
   }
 }
