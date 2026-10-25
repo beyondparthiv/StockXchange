@@ -25,8 +25,12 @@ export type Company = {
   shortName: string;
   /** Brand accent, used at low opacity only. */
   accent: string;
-  /** Path under /public. Absent file falls back to a monogram. */
-  logo: string;
+  /**
+   * Path under /public, or null when no asset has been added yet. Null means
+   * the monogram renders with no network request at all — pointing at a file
+   * that does not exist would fire a 404 for every logo on every page.
+   */
+  logo: string | null;
   /** Monogram shown while/if no logo asset exists. */
   monogram: string;
 };
@@ -37,7 +41,7 @@ export const COMPANIES: Company[] = [
     name: "Tesla, Inc.",
     shortName: "Tesla",
     accent: "#cc0000",
-    logo: "/logos/tsla.svg",
+    logo: null, // set to "/logos/tsla.svg" once the asset is added
     monogram: "T",
   },
   {
@@ -45,7 +49,7 @@ export const COMPANIES: Company[] = [
     name: "Apple Inc.",
     shortName: "Apple",
     accent: "#8e8e93",
-    logo: "/logos/aapl.svg",
+    logo: null, // set to "/logos/aapl.svg" once the asset is added
     monogram: "A",
   },
   {
@@ -53,7 +57,7 @@ export const COMPANIES: Company[] = [
     name: "Amazon.com, Inc.",
     shortName: "Amazon",
     accent: "#ff9900",
-    logo: "/logos/amzn.svg",
+    logo: null, // set to "/logos/amzn.svg" once the asset is added
     monogram: "A",
   },
   {
@@ -61,7 +65,7 @@ export const COMPANIES: Company[] = [
     name: "JPMorgan Chase & Co.",
     shortName: "JPMorgan",
     accent: "#0f4c81",
-    logo: "/logos/jpm.svg",
+    logo: null, // set to "/logos/jpm.svg" once the asset is added
     monogram: "J",
   },
   {
@@ -69,7 +73,7 @@ export const COMPANIES: Company[] = [
     name: "Netflix, Inc.",
     shortName: "Netflix",
     accent: "#e50914",
-    logo: "/logos/nflx.svg",
+    logo: null, // set to "/logos/nflx.svg" once the asset is added
     monogram: "N",
   },
   {
@@ -77,7 +81,7 @@ export const COMPANIES: Company[] = [
     name: "CVS Health Corporation",
     shortName: "CVS Health",
     accent: "#c8102e",
-    logo: "/logos/cvs.svg",
+    logo: null, // set to "/logos/cvs.svg" once the asset is added
     monogram: "C",
   },
 ];

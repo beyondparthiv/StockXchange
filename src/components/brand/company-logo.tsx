@@ -5,12 +5,21 @@ import type { Company } from "@/lib/brand/companies";
 
 /**
  * Renders a company's logo at a fixed size, falling back to a monogram tile in
- * the brand accent when the asset file isn't present yet. Client component
- * because the fallback depends on the image's load result.
+ * the brand accent.
+ *
+ * Two things make the fallback fiddlier than it looks:
+ *
+ *  - `company.logo` is null until a real asset is added, and in that case no
+ *    <img> is rendered at all. Pointing at a missing file would fire a 404 for
+ *    every logo on every page — dozens per render of the game board.
+ *  - When an <img> IS rendered, it is server-rendered, so a broken src fires
+ *    its `error` event before React hydrates and `onError` never runs. The ref
+ *    callback catches that case by inspecting the element on attach: a decoded
+ *    image has a non-zero naturalWidth, a broken one does not.
  *
  * Deliberately not <Image>: these are small, fixed-size marks rendered many
- * times per screen, and a plain <img> with explicit dimensions avoids the
- * optimizer round-trip for what are already tiny SVGs.
+ * times per screen, and a plain <img> avoids the optimizer round-trip for what
+ * are already tiny SVGs.
  */
 export function CompanyLogo({
   company,
@@ -22,6 +31,7 @@ export function CompanyLogo({
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
+  const showImage = Boolean(company.logo) && !failed;
 
   return (
     <span
@@ -34,30 +44,36 @@ export function CompanyLogo({
       }}
       aria-hidden="true"
     >
-      {failed ? (
-        <span className="font-semibold" style={{ fontSize: size * 0.5 }}>
-          {company.monogram}
-        </span>
-      ) : (
+      {showImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={company.logo}
+          ref={(el) => {
+            if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+          }}
+          src={company.logo as string}
           alt=""
           width={size}
           height={size}
           className="h-full w-full object-contain"
           onError={() => setFailed(true)}
         />
+      ) : (
+        <span
+          className="font-semibold leading-none"
+          style={{ fontSize: Math.max(9, Math.round(size * 0.46)) }}
+        >
+          {company.monogram}
+        </span>
       )}
     </span>
   );
 }
 
 /**
- * The oversized, very low-opacity brand mark that sits behind a stock tile.
- * Recognisable, but never competing with the numbers — absolutely positioned,
- * clipped by the tile, inert to pointer events. Renders nothing when the asset
- * is missing rather than showing a giant monogram.
+ * The oversized, very low-opacity brand mark behind a stock tile. Recognisable,
+ * but never competing with the numbers — absolutely positioned, clipped by the
+ * tile, inert to pointer events. Renders nothing when there is no asset rather
+ * than showing a giant monogram.
  */
 export function CompanyWatermark({
   company,
@@ -67,7 +83,7 @@ export function CompanyWatermark({
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
-  if (failed) return null;
+  if (!company.logo || failed) return null;
 
   return (
     <span
@@ -76,6 +92,9 @@ export function CompanyWatermark({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        ref={(el) => {
+          if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+        }}
         src={company.logo}
         alt=""
         width={96}
