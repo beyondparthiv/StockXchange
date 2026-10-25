@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   CASH_PRESETS,
   LIMITS,
@@ -14,6 +14,7 @@ import {
 } from "@/lib/game/config";
 import { ROOM_CODE_LENGTH } from "@/lib/game/rooms";
 import { useGameConfigStore } from "@/lib/stores/game-config-store";
+import { useConfigHydrated } from "@/lib/stores/use-config-hydrated";
 import { Chip, SettingRow, Stepper } from "@/components/ui/controls";
 import { Alert } from "@/components/auth/auth-ui";
 
@@ -22,11 +23,11 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
   const meta = MODE_META[mode];
   const { config, setConfig } = useGameConfigStore();
 
-  // Guard against hydration mismatch: the persisted store isn't known until the
-  // client mounts, so render a placeholder for the first paint.
-  const [mounted, setMounted] = useState(false);
+  // The persisted store isn't known until it rehydrates, so render a
+  // placeholder for the first paint rather than flashing the defaults.
+  // useSyncExternalStore avoids the setState-in-an-effect this used to do.
+  const mounted = useConfigHydrated();
   const [ready, setReady] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   // Online-mode room actions.
   const [creating, setCreating] = useState(false);

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { GameScreen } from "@/components/game/game-screen";
 import { botSeats } from "@/lib/game/mock";
 import { useGameConfigStore } from "@/lib/stores/game-config-store";
+import { useConfigHydrated } from "@/lib/stores/use-config-hydrated";
 import type { GameMode } from "@/lib/game/config";
 
 /**
@@ -19,23 +19,9 @@ import type { GameMode } from "@/lib/game/config";
 export default function OfflineGame({ mode }: { mode: GameMode }) {
   const { config } = useGameConfigStore();
 
-  /*
-   * Wait for the persisted config before starting the game.
-   *
-   * The store rehydrates from localStorage after mount, and the board reads
-   * its config once in a useState initialiser. Rendering immediately meant
-   * a player who chose a 60-second timer silently got the 90-second
-   * default — the settings screen appeared to do nothing.
-   */
-  const [hydrated, setHydrated] = useState(() =>
-    useGameConfigStore.persist.hasHydrated(),
-  );
-  useEffect(() => {
-    if (hydrated) return;
-    return useGameConfigStore.persist.onFinishHydration(() =>
-      setHydrated(true),
-    );
-  }, [hydrated]);
+  // The board reads the config once, so it must not start before the
+  // persisted value is back. See useConfigHydrated.
+  const hydrated = useConfigHydrated();
 
   if (!hydrated) {
     return (

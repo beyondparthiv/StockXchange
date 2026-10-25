@@ -633,16 +633,19 @@ export function GameScreen({
       });
     }, 1000);
 
-    // ---- 1. Cards window -------------------------------------------------
-    setState((prev) => ({
-      ...prev,
-      phase: "pre-round",
-      secondsLeft: PRE_ROUND_SECONDS,
-    }));
-    setBanner({
-      title: `Day ${day} · Round ${round}`,
-      sub: "Cards open — play anything that informs this round",
-    });
+    /*
+     * The cards window is already open when this effect runs: whoever
+     * advanced the round set phase and the clock as part of that step, and
+     * the opening state starts there. Setting it again here would be a
+     * synchronous setState in an effect body — a cascading render for no
+     * benefit.
+     */
+    at(0, () =>
+      setBanner({
+        title: `Day ${day} · Round ${round}`,
+        sub: "Cards open — play anything that informs this round",
+      }),
+    );
     at(2000, () => setBanner(null));
 
     // ---- 2. Trading ------------------------------------------------------
@@ -678,6 +681,8 @@ export function GameScreen({
         setState((prev) => ({
           ...prev,
           round: prev.round + 1,
+          phase: "pre-round",
+          secondsLeft: PRE_ROUND_SECONDS,
           players: prev.players.map((pl) => ({ ...pl, actedThisRound: false })),
         }));
       });
@@ -727,6 +732,8 @@ export function GameScreen({
             ...prev,
             day: prev.day + 1,
             round: 1,
+            phase: "pre-round",
+            secondsLeft: PRE_ROUND_SECONDS,
             // A fresh hand every day, specials included — otherwise a card
             // you chose not to spend on day one is still sitting there on
             // day ten, and the daily deal stops meaning anything.

@@ -68,8 +68,9 @@ export function mockGameState(
     day: 1,
     round: 1,
     roundsPerDay: 2,
-    phase: "trading",
-    secondsLeft: cfg.roundTimerSec,
+    // A game opens in the cards window, not mid-trade.
+    phase: "pre-round",
+    secondsLeft: 15,
 
     quotes: [
       { ticker: "TSLA", initial: d(95),  lastRound: d(95),  current: d(95),  frozen: false },
