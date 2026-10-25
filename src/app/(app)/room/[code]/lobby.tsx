@@ -210,9 +210,19 @@ export default function Lobby({
   }
 
   if (status === "in_game") {
-    // The board currently runs on mock state (lib/game/mock.ts) — the room's
-    // own config and roster are not wired in until the engine exists.
-    return <GameScreen />;
+    // Prices, signals and news are still mock, but the roster and config are
+    // the real ones from this room — so you play against the people who
+    // actually joined, under the settings the host chose.
+    return (
+      <GameScreen
+        seats={players.map((p) => ({
+          id: p.user_id,
+          displayName: p.display_name,
+        }))}
+        meId={userId}
+        config={room.config}
+      />
+    );
   }
 
   const readyCount = players.filter((p) => p.is_ready).length;

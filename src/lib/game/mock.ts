@@ -11,7 +11,7 @@
  * logic is in the wrong file.
  */
 
-import { DEFAULT_CONFIG } from "@/lib/game/config";
+import { DEFAULT_CONFIG, type GameConfig } from "@/lib/game/config";
 import { PLAYER_SPECIAL_CARDS } from "@/lib/game/cards";
 import type { GameState } from "@/lib/game/state";
 
@@ -19,9 +19,35 @@ const d = (dollars: number) => Math.round(dollars * 100);
 
 export const MOCK_ME = "p1";
 
-export function mockGameState(): GameState {
+/** A seat at the table, as the lobby knows it. */
+export type Seat = { id: string; displayName: string };
+
+/**
+ * Build the opening state for a real room.
+ *
+ * `seats` and `config` come from the lobby, so the board shows the people who
+ * actually joined and the settings the host chose — rather than four
+ * hardcoded strangers. Everything else is still mock until the engine is
+ * wired in.
+ */
+export function mockGameState(
+  seats?: Seat[],
+  meId?: string,
+  config?: GameConfig,
+): GameState {
+  const cfg = { ...DEFAULT_CONFIG, ...(config ?? {}) };
+  const roster: Seat[] =
+    seats && seats.length > 0
+      ? seats
+      : [
+          { id: "p1", displayName: "You" },
+          { id: "p2", displayName: "Ravi" },
+          { id: "p3", displayName: "Meera" },
+          { id: "p4", displayName: "Arjun" },
+        ];
+
   return {
-    config: { ...DEFAULT_CONFIG, companies: 6 },
+    config: cfg,
     // A new game opens on Day 1, Round 1 with every price at its initial
     // value, so the first round genuinely shows no movement. (This used to
     // open on Day 3 with prices already moved, purely so the panels looked
@@ -31,7 +57,7 @@ export function mockGameState(): GameState {
     round: 1,
     roundsPerDay: 2,
     phase: "trading",
-    secondsLeft: DEFAULT_CONFIG.roundTimerSec,
+    secondsLeft: cfg.roundTimerSec,
 
     quotes: [
       { ticker: "TSLA", initial: d(95),  lastRound: d(95),  current: d(95),  frozen: false },
@@ -82,13 +108,14 @@ export function mockGameState(): GameState {
 
     // Everyone opens flat: full cash, no positions, nothing traded yet. The
     // portfolio and history panels fill in as you trade.
-    players: [
-      { id: "p1", displayName: "You",   cash: DEFAULT_CONFIG.startingCash, actedThisRound: false, holdings: [] },
-      { id: "p2", displayName: "Ravi",  cash: DEFAULT_CONFIG.startingCash, actedThisRound: false, holdings: [] },
-      { id: "p3", displayName: "Meera", cash: DEFAULT_CONFIG.startingCash, actedThisRound: false, holdings: [] },
-      { id: "p4", displayName: "Arjun", cash: DEFAULT_CONFIG.startingCash, actedThisRound: false, holdings: [] },
-    ],
-    meId: MOCK_ME,
+    players: roster.map((seat) => ({
+      id: seat.id,
+      displayName: seat.displayName,
+      cash: cfg.startingCash,
+      actedThisRound: false,
+      holdings: [],
+    })),
+    meId: meId ?? roster[0].id,
 
     activity: [],
 

@@ -26,7 +26,7 @@ export type GameConfig = {
 
 export const DEFAULT_CONFIG: GameConfig = {
   days: 10,
-  startingCash: 1_000_000, // $10,000
+  startingCash: 100_000, // $1,000
   companies: 6,
   roundTimerSec: 90,
 };
@@ -36,9 +36,15 @@ export const LIMITS = {
   companies: { min: 4, max: 8, step: 1 },
 } as const;
 
-/** Selectable starting-cash amounts, in cents. With shares priced $60–$100,
- *  $10,000 buys a meaningful but not unlimited position. */
-export const CASH_PRESETS = [500_000, 1_000_000, 2_500_000, 5_000_000];
+/**
+ * Selectable starting-cash amounts, in cents.
+ *
+ * With shares at $60–$100, $1,000 buys roughly 10–16 shares. That is
+ * deliberately tight: every order costs a real fraction of the wallet, so
+ * choosing between instruments actually matters. A larger float lets you buy
+ * everything and removes the decision.
+ */
+export const CASH_PRESETS = [50_000, 100_000, 250_000, 500_000];
 
 /** Selectable round-timer lengths (seconds). */
 export const TIMER_OPTIONS = [60, 90, 120, 180];

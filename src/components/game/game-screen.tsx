@@ -15,7 +15,8 @@ import {
   Portfolio,
   Wallet,
 } from "@/components/game/panels";
-import { mockGameState } from "@/lib/game/mock";
+import { mockGameState, type Seat } from "@/lib/game/mock";
+import type { GameConfig } from "@/lib/game/config";
 import type { GameState, TradeSide } from "@/lib/game/state";
 
 /**
@@ -32,10 +33,20 @@ import type { GameState, TradeSide } from "@/lib/game/state";
 
 type Toast = { id: number; text: string; side: TradeSide };
 
-export function GameScreen() {
-  // Mock state lives in component state so interactions feel real while the
-  // engine is missing. Replace with the engine's payload + realtime updates.
-  const [state, setState] = useState<GameState>(() => mockGameState());
+export function GameScreen({
+  seats,
+  meId,
+  config,
+}: {
+  /** The people who actually joined the room, from the lobby. */
+  seats?: Seat[];
+  meId?: string;
+  config?: GameConfig;
+} = {}) {
+  // Prices, signals and news are still mock; the roster and config are real.
+  const [state, setState] = useState<GameState>(() =>
+    mockGameState(seats, meId, config),
+  );
   const [selected, setSelected] = useState(state.quotes[0]?.ticker ?? "");
   const [historyTab, setHistoryTab] = useState<"mine" | "all">("mine");
   const [toasts, setToasts] = useState<Toast[]>([]);
