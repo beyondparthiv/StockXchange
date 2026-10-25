@@ -30,9 +30,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from engine.models import DealRequest, DealResult, RoundRequest, RoundResult
+from engine.settle import deal_game, default_companies, settle
+
 # Package version — bumped as the engine grows. Surfaced by /health so the web
 # app can confirm which engine build it is talking to.
-ENGINE_VERSION = "0.1.0"
+ENGINE_VERSION = "0.2.0"
 
 app = FastAPI(
     title="StockXchange Price & News Engine",
@@ -94,3 +97,37 @@ def health() -> HealthResponse:
         python_version=platform.python_version(),
         timestamp=datetime.now(timezone.utc).isoformat(),
     )
+
+
+# ---------------------------------------------------------------------------
+# Game endpoints
+#
+# The engine is stateless: it never stores a game. The caller (the Next.js
+# app, backed by Supabase) owns persistence and passes the world in on every
+# call. That keeps settlement a pure function of its inputs — the same
+# request always produces the same response — which is what makes a round
+# replayable after a retry and testable without a database.
+# ---------------------------------------------------------------------------
+
+
+@app.get("/companies", tags=["game"])
+def companies():
+    """The default six-company roster, with their volatilities and drifts."""
+    return {"companies": [c.model_dump() for c in default_companies()]}
+
+
+@app.post("/game/deal", response_model=DealResult, tags=["game"])
+def game_deal(req: DealRequest) -> DealResult:
+    """Opening state for a new game: starting prices, the first round's
+    signals, and day one's news."""
+    return deal_game(req)
+
+
+@app.post("/round/settle", response_model=RoundResult, tags=["game"])
+def round_settle(req: RoundRequest) -> RoundResult:
+    """Close the current round and open the next one.
+
+    Returns the settled quotes, the per-company change, the signals for the
+    round about to start, and (on a day boundary) that day's news.
+    """
+    return settle(req)
