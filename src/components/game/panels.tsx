@@ -23,19 +23,30 @@ function Panel({
   aside,
   children,
   bodyClass = "p-4",
+  className = "",
 }: {
   title: string;
   aside?: React.ReactNode;
   children: React.ReactNode;
   bodyClass?: string;
+  className?: string;
 }) {
   return (
-    <section className="rounded-lg border border-line bg-surface shadow-panel">
-      <header className="flex items-baseline justify-between border-b border-line px-4 py-2.5">
+    <section
+      className={`flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-panel ${className}`}
+    >
+      <header className="flex shrink-0 items-baseline justify-between border-b border-line px-4 py-2">
         <h2 className="t-section">{title}</h2>
         {aside}
       </header>
-      <div className={bodyClass}>{children}</div>
+      {/*
+        min-h-0 is what lets a flex child actually shrink. Without it the
+        body keeps its content height, the panel overflows its column, and
+        the page grows a scrollbar — which is exactly what we are avoiding.
+      */}
+      <div className={`min-h-0 flex-1 overflow-y-auto ${bodyClass}`}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -48,13 +59,19 @@ function Empty({ children }: { children: React.ReactNode }) {
 
 /* ---------------------------------------------------------------- Wallet */
 
-export function Wallet({ state }: { state: GameState }) {
+export function Wallet({
+  state,
+  className = "",
+}: {
+  state: GameState;
+  className?: string;
+}) {
   const player = me(state);
   const holdings = holdingsValue(state, player);
   const worth = netWorth(state, player);
 
   return (
-    <Panel title="Wallet">
+    <Panel title="Wallet" className={className}>
       <dl className="space-y-2">
         <div className="flex items-baseline justify-between">
           <dt className="t-label">Available cash</dt>
@@ -77,12 +94,19 @@ export function Wallet({ state }: { state: GameState }) {
 
 /* ------------------------------------------------------------- Portfolio */
 
-export function Portfolio({ state }: { state: GameState }) {
+export function Portfolio({
+  state,
+  className = "",
+}: {
+  state: GameState;
+  className?: string;
+}) {
   const player = me(state);
 
   return (
     <Panel
       title="Portfolio"
+      className={className}
       aside={
         <span className="text-[0.625rem] text-ink-faint">
           {player.holdings.length} position
@@ -132,11 +156,17 @@ export function Portfolio({ state }: { state: GameState }) {
 
 /* ----------------------------------------------------------- Leaderboard */
 
-export function Leaderboard({ state }: { state: GameState }) {
+export function Leaderboard({
+  state,
+  className = "",
+}: {
+  state: GameState;
+  className?: string;
+}) {
   const ranked = leaderboard(state);
 
   return (
-    <Panel title="Leaderboard" bodyClass="">
+    <Panel title="Leaderboard" bodyClass="" className={className}>
       <ol className="divide-y divide-line">
         {ranked.map((p, i) => {
           const isMe = p.id === state.meId;
@@ -176,9 +206,15 @@ export function Leaderboard({ state }: { state: GameState }) {
 
 /* ------------------------------------------------------------------ News */
 
-export function NewsFeed({ news }: { news: NewsItem[] }) {
+export function NewsFeed({
+  news,
+  className = "",
+}: {
+  news: NewsItem[];
+  className?: string;
+}) {
   return (
-    <Panel title="Market news" bodyClass="">
+    <Panel title="Market news" bodyClass="" className={className}>
       {news.length === 0 ? (
         <Empty>No news yet.</Empty>
       ) : (
@@ -242,69 +278,105 @@ function ActivityRow({ a }: { a: Activity }) {
   );
 }
 
-export function History({
+/**
+ * History as a slide-over rather than a rail panel.
+ *
+ * It was the tallest thing in the right column and the least glanced at —
+ * you check it between decisions, not during one. Moving it behind a button
+ * is what buys the other panels enough height to fit one screen.
+ */
+export function HistoryDrawer({
   state,
+  open,
   tab,
   onTab,
+  onClose,
 }: {
   state: GameState;
+  open: boolean;
   tab: "mine" | "all";
   onTab: (t: "mine" | "all") => void;
+  onClose: () => void;
 }) {
+  if (!open) return null;
+
   const rows =
     tab === "mine"
       ? state.activity.filter((a) => a.playerId === state.meId)
       : state.activity;
 
   return (
-    <Panel
-      title="History"
-      bodyClass=""
-      aside={
-        <div className="inline-flex rounded-md border border-line bg-canvas-2 p-0.5">
-          {(
-            [
-              ["mine", "Mine"],
-              ["all", "Overall"],
-            ] as const
-          ).map(([key, label]) => {
-            // Overall History is *unavailable* rather than empty when the host
-            // has public activity switched off — an empty list would read as
-            // "nobody traded", which is a different and misleading claim.
-            const disabled = key === "all" && !state.publicActivity;
-            return (
-              <button
-                key={key}
-                type="button"
-                disabled={disabled}
-                title={
-                  disabled ? "Public trade activity is off for this game" : undefined
-                }
-                onClick={() => onTab(key)}
-                className={`interactive rounded-[4px] px-2 py-0.5 text-[0.625rem] font-medium ${
-                  tab === key
-                    ? "bg-surface text-ink shadow-panel"
-                    : "text-ink-faint hover:text-ink"
-                } ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
-              >
-                {label}
-              </button>
-            );
-          })}
+    <div className="fixed inset-0 z-50 flex justify-end">
+      {/* Click-away. Dimmed rather than opaque so the board stays visible —
+          history is context for the market, not a replacement for it. */}
+      <button
+        type="button"
+        aria-label="Close history"
+        onClick={onClose}
+        className="animate-fade-in absolute inset-0 cursor-default bg-canvas/50 backdrop-blur-[1px]"
+      />
+
+      <aside className="drawer-in relative flex h-full w-full max-w-sm flex-col border-l border-line bg-surface shadow-lift">
+        <header className="flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
+          <h2 className="t-section">Trade history</h2>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex rounded-md border border-line bg-canvas-2 p-0.5">
+              {(
+                [
+                  ["mine", "Mine"],
+                  ["all", "Overall"],
+                ] as const
+              ).map(([key, label]) => {
+                // Unavailable, not empty: an empty list would read as
+                // "nobody traded", which is a different claim.
+                const disabled = key === "all" && !state.publicActivity;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    disabled={disabled}
+                    title={
+                      disabled
+                        ? "Public trade activity is off for this game"
+                        : undefined
+                    }
+                    onClick={() => onTab(key)}
+                    className={`interactive rounded-[4px] px-2.5 py-1 text-[0.6875rem] font-medium ${
+                      tab === key
+                        ? "bg-surface text-ink shadow-panel"
+                        : "text-ink-faint hover:text-ink"
+                    } ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="interactive grid h-7 w-7 place-items-center rounded-md text-ink-faint hover:bg-surface-2 hover:text-ink"
+            >
+              ✕
+            </button>
+          </div>
+        </header>
+
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {tab === "all" && !state.publicActivity ? (
+            <Empty>Public trade activity is disabled for this game.</Empty>
+          ) : rows.length === 0 ? (
+            <Empty>No trades yet.</Empty>
+          ) : (
+            <ul className="divide-y divide-line">
+              {rows.map((a) => (
+                <ActivityRow key={a.id} a={a} />
+              ))}
+            </ul>
+          )}
         </div>
-      }
-    >
-      {tab === "all" && !state.publicActivity ? (
-        <Empty>Public trade activity is disabled for this game.</Empty>
-      ) : rows.length === 0 ? (
-        <Empty>No trades yet.</Empty>
-      ) : (
-        <ul className="divide-y divide-line">
-          {rows.map((a) => (
-            <ActivityRow key={a.id} a={a} />
-          ))}
-        </ul>
-      )}
-    </Panel>
+      </aside>
+    </div>
   );
 }

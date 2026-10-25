@@ -8,7 +8,7 @@ import { MarketGrid } from "@/components/game/market";
 import { CardGrid } from "@/components/game/cards";
 import { OrderPanel } from "@/components/game/order-panel";
 import {
-  History,
+  HistoryDrawer,
   Leaderboard,
   NewsFeed,
   Portfolio,
@@ -50,6 +50,7 @@ export function GameScreen({
   );
   const [selected, setSelected] = useState(state.quotes[0]?.ticker ?? "");
   const [historyTab, setHistoryTab] = useState<"mine" | "all">("mine");
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [transition, setTransition] = useState<{
     title: string;
@@ -72,6 +73,17 @@ export function GameScreen({
   useEffect(() => {
     stateRef.current = state;
   });
+
+  // The board owns the viewport. Locking body scroll stops a stray pixel of
+  // overflow (or a browser's scroll-anchoring) from introducing a scrollbar
+  // that shifts the whole table sideways mid-round.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
 
   const pushToast = useCallback((text: string, side: TradeSide) => {
     const id = Date.now() + Math.random();
@@ -186,6 +198,96 @@ export function GameScreen({
     }));
   }, []);
 
+
+  /*
+   * Opening deal.
+   *
+   * Without this the first round of every game was identical: the board
+   * started from the hardcoded mock and only reached the engine at the first
+   * settle, so day 1 always showed the same prices, the same ten cards and
+   * the same three headlines no matter how many times you played.
+   *
+   * Asking the engine to deal on mount fixes that. `gameId` is random per
+   * game and the engine seeds its RNG on it, so every game gets its own
+   * market from the first card onwards.
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/game/settle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "deal",
+            gameId,
+            days: stateRef.current.config.days,
+            roundsPerDay: stateRef.current.roundsPerDay,
+          }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (!data.ok) {
+          setEngineDown(data.error ?? "Price engine unavailable");
+          return;
+        }
+        setEngineDown(null);
+        setState((prev) => ({
+          ...prev,
+          quotes: data.quotes.map(
+            (q: {
+              ticker: string;
+              initial: number;
+              last_round: number;
+              current: number;
+              frozen: boolean;
+            }) => ({
+              ticker: q.ticker,
+              initial: q.initial,
+              lastRound: q.last_round,
+              current: q.current,
+              frozen: q.frozen,
+            }),
+          ),
+          signals: data.signals.map(
+            (sg: { id: string; ticker: string; delta: number }) => ({
+              id: sg.id,
+              ticker: sg.ticker,
+              delta: sg.delta,
+            }),
+          ),
+          news: data.news.map(
+            (n: {
+              id: string;
+              day: number;
+              ticker: string | null;
+              headline: string;
+              body?: string;
+            }) => ({
+              id: n.id,
+              day: n.day,
+              ticker: n.ticker,
+              headline: n.headline,
+              body: n.body,
+            }),
+          ),
+        }));
+      } catch (e) {
+        if (!cancelled) {
+          setEngineDown(
+            e instanceof Error ? e.message : "Price engine unavailable",
+          );
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // Once per game.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameId]);
 
   /*
    * Round loop.
@@ -398,25 +500,41 @@ export function GameScreen({
 
   return (
     <>
-      <GameHeader state={state} />
+      <GameHeader
+        state={state}
+        onOpenHistory={() => setHistoryOpen(true)}
+        activityCount={state.activity.length}
+      />
       <PhaseTransition transition={transition} />
 
       {engineDown && (
-        <div className="animate-fade-in border-b border-warn/30 bg-warn/10 px-6 py-1.5 text-center text-[0.6875rem] font-medium text-warn">
+        <div className="animate-fade-in border-b border-warn/30 bg-warn/10 px-6 py-1 text-center text-[0.6875rem] font-medium text-warn">
           Price engine unavailable — prices are moving on a local fallback.{" "}
           <span className="text-ink-faint">({engineDown})</span>
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-[1800px] px-6 py-5">
-        <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)_300px]">
+      {/*
+        The board is a fixed-height viewport, not a document. A trading table
+        you have to scroll is a table where the thing you needed was off
+        screen when the timer ran out, so the whole game fits one screen and
+        only the genuinely unbounded lists (news, holdings, standings) scroll
+        inside their own panel.
+
+        Sized by flex-1 against the layout's column, not a calc() against the
+        header heights. The first attempt subtracted a hardcoded 6.5rem and
+        the real headers came to 111px, so the page overflowed by 7px and
+        grew a scrollbar anyway. Flex cannot be off by a rounding error.
+      */}
+      <main className="mx-auto w-full min-h-0 max-w-[1800px] flex-1 overflow-hidden px-5 py-3">
+        <div className="grid h-full min-h-0 gap-3 xl:grid-cols-[250px_minmax(0,1fr)_290px]">
           {/* LEFT — supporting information */}
-          <aside className="order-2 space-y-4 xl:order-1">
-            <NewsFeed news={state.news} />
+          <aside className="order-2 flex min-h-0 flex-col xl:order-1">
+            <NewsFeed news={state.news} className="min-h-0 flex-1" />
           </aside>
 
           {/* CENTRE — the primary focus */}
-          <div className="order-1 space-y-5 xl:order-2">
+          <div className="order-1 flex min-h-0 flex-col gap-3 xl:order-2">
             <MarketGrid
               quotes={state.quotes}
               selected={selected}
@@ -430,7 +548,7 @@ export function GameScreen({
           </div>
 
           {/* RIGHT — the player's own position */}
-          <aside className="order-3 space-y-4">
+          <aside className="order-3 flex min-h-0 flex-col gap-3">
             <OrderPanel
               key={selected}
               state={state}
@@ -439,23 +557,26 @@ export function GameScreen({
               onPass={pass}
             />
             <Wallet state={state} />
-            <Portfolio state={state} />
-            <Leaderboard state={state} />
-            <History state={state} tab={historyTab} onTab={setHistoryTab} />
+            <Portfolio state={state} className="min-h-0 flex-1" />
+            <Leaderboard state={state} className="min-h-0 flex-[0_1_auto]" />
           </aside>
         </div>
       </main>
 
-      {/* Trade notifications — never inside the signal cards. */}
-      <div className="pointer-events-none fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2">
+      {/*
+        Trade notifications drop in from behind the control bar rather than
+        rising from the bottom. The action they report happens at the top of
+        the screen, and the bottom edge is where the news crawl already lives.
+      */}
+      <div className="pointer-events-none fixed inset-x-0 top-[7.25rem] z-40 flex flex-col items-center gap-1.5">
         {toasts.map((t) => {
           const company = getCompany(t.text.split(" ").pop() ?? "");
           return (
             <div
               key={t.id}
-              className="animate-rise-in flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-xs font-medium text-ink shadow-lift"
+              className="toast-drop flex items-center gap-2 rounded-md border border-line bg-surface/95 px-3 py-1.5 text-xs font-medium text-ink shadow-lift backdrop-blur-sm"
             >
-              {company && <CompanyLogo company={company} size={16} />}
+              {company && <CompanyLogo company={company} size={15} />}
               <span className={t.side === "buy" ? "text-up" : "text-down"}>
                 ●
               </span>
@@ -464,6 +585,14 @@ export function GameScreen({
           );
         })}
       </div>
+
+      <HistoryDrawer
+        state={state}
+        open={historyOpen}
+        tab={historyTab}
+        onTab={setHistoryTab}
+        onClose={() => setHistoryOpen(false)}
+      />
     </>
   );
 }

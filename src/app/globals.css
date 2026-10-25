@@ -878,6 +878,43 @@ body {
   }
 }
 
+/* Notifications drop in from behind the control bar. */
+@keyframes toast-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.toast-drop {
+  animation: toast-drop 280ms var(--ease-out) both;
+}
+
+/* History slide-over. */
+@keyframes drawer-in {
+  0% {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+.drawer-in {
+  animation: drawer-in 240ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-drop,
+  .drawer-in {
+    animation: none;
+  }
+}
+
 /* Skeleton shimmer — calmer than a pulsing opacity block. */
 @keyframes shimmer {
   100% {

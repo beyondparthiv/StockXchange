@@ -29,7 +29,15 @@ function Stat({ label, value }: { label: string; value: string }) {
  * checks constantly: where they are in the game, how long is left, and what
  * the game is currently doing.
  */
-export function GameHeader({ state }: { state: GameState }) {
+export function GameHeader({
+  state,
+  onOpenHistory,
+  activityCount = 0,
+}: {
+  state: GameState;
+  onOpenHistory?: () => void;
+  activityCount?: number;
+}) {
   const totalRounds = state.config.days * state.roundsPerDay;
   const roundsDone = (state.day - 1) * state.roundsPerDay + state.round;
   const progress = Math.min(100, (roundsDone / totalRounds) * 100);
@@ -66,7 +74,22 @@ export function GameHeader({ state }: { state: GameState }) {
           </div>
         )}
 
-        <div className="ml-auto flex min-w-[180px] flex-col gap-1">
+        {onOpenHistory && (
+          <button
+            type="button"
+            onClick={onOpenHistory}
+            className="interactive ml-auto flex items-center gap-1.5 rounded-md border border-white/18 px-2.5 py-1 text-[0.6875rem] font-medium text-white/75 hover:border-white/30 hover:bg-white/5 hover:text-white"
+          >
+            History
+            {activityCount > 0 && (
+              <span className="rounded-[3px] bg-white/15 px-1 font-mono text-[0.5625rem] text-white">
+                {activityCount}
+              </span>
+            )}
+          </button>
+        )}
+
+        <div className="flex min-w-[150px] flex-col gap-1">
           <div className="flex justify-between text-[0.5625rem] uppercase tracking-wider text-white/40">
             <span>Progress</span>
             <span className="font-mono">
