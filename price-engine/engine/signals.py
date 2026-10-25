@@ -39,7 +39,10 @@ ACCURATE_RATE = 0.55
 VAGUE_RATE = 0.30
 FALSE_RATE = 0.15
 
-SIGNALS_PER_ROUND = 10
+#: Eight signals per round. With the two special cards that makes ten cards
+#: on the table — the grid is 5 columns x 2 rows, and ten tiles at a
+#: readable size is what fits the centre column.
+SIGNALS_PER_ROUND = 8
 
 #: Signals are rounded to a readable step so cards read "+$4", not "+$3.87".
 SIGNAL_STEP = 100  # $1

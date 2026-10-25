@@ -126,7 +126,7 @@ def test_signals_describe_the_round_that_is_about_to_open(companies, quotes):
 
 def test_every_company_gets_at_least_one_signal(companies, quotes):
     sigs = deal_signals("g1", 1, 1, companies, quotes)
-    assert len(sigs) == 10
+    assert len(sigs) == 8
     assert {s.ticker for s in sigs} == {c.ticker for c in companies}
 
 
@@ -196,7 +196,7 @@ def test_news_is_deterministic(companies, quotes):
 def test_deal_opens_at_initial_prices(companies):
     res = deal_game(DealRequest(game_id="g1", companies=companies))
     assert all(q.current == q.initial == q.last_round for q in res.quotes)
-    assert len(res.signals) == 10
+    assert len(res.signals) == 8
     assert len(res.news) == 3
 
 
@@ -225,7 +225,7 @@ def test_a_full_game_stays_sane(companies):
                              rounds_per_day=2, companies=companies, quotes=q)
             )
             q = res.quotes
-            assert len(res.next_signals) == 10
+            assert len(res.next_signals) == 8
 
     for quote in q:
         assert quote.current >= MIN_PRICE

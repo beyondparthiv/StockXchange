@@ -534,7 +534,7 @@ export function GameScreen({
           ...prev,
           // Specials are dealt here too, from the real game id, so each game
           // gets its own pair rather than a fixed opening hand.
-          specials: dealSpecials(id, 2),
+          specials: dealSpecials(`${id}-d1`, 2),
           quotes: data.quotes.map(
             (q: {
               ticker: string;
@@ -727,6 +727,10 @@ export function GameScreen({
             ...prev,
             day: prev.day + 1,
             round: 1,
+            // A fresh hand every day, specials included — otherwise a card
+            // you chose not to spend on day one is still sitting there on
+            // day ten, and the daily deal stops meaning anything.
+            specials: dealSpecials(`${gameId}-d${prev.day + 1}`, 2),
             players: prev.players.map((pl) => ({
               ...pl,
               actedThisRound: false,
