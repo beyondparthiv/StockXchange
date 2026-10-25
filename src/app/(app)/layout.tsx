@@ -79,11 +79,20 @@ export default async function AppLayout({
     .maybeSingle();
   const theme: Theme = settings?.theme === "dark" ? "dark" : "light";
 
+  /*
+   * min-h-0 on both wrappers is load-bearing, not tidying.
+   *
+   * A flex child defaults to min-height:auto, so it refuses to shrink below
+   * its content. The game board asks for the remaining viewport height with
+   * flex-1, and without these the chain handed it its content height
+   * instead — the board overflowed by ~16px and the leaderboard fell off
+   * the bottom of a 1366x768 screen.
+   */
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <ThemeApply theme={theme} />
       <AppHeader displayName={displayName} avatarUrl={profile?.avatar_url} />
-      <div className="flex flex-1 flex-col">{children}</div>
+      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
     </div>
   );
 }

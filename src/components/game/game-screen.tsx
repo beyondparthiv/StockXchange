@@ -703,9 +703,19 @@ export function GameScreen({
       */}
       <main className="mx-auto w-full min-h-0 max-w-[1800px] flex-1 overflow-hidden px-5 py-3">
         <div className="grid h-full min-h-0 gap-3 xl:grid-cols-[250px_minmax(0,1fr)_290px]">
-          {/* LEFT — supporting information */}
-          <aside className="order-2 flex min-h-0 flex-col xl:order-1">
+          {/*
+            LEFT — supporting information.
+
+            The leaderboard lives here rather than in the right rail. That
+            rail has a hard height budget (order panel, wallet, portfolio)
+            and on a 1366x768 screen the standings were falling off the
+            bottom of it. News and standings are both reference material, so
+            pairing them here fixes the overflow structurally instead of by
+            shaving pixels off everything else.
+          */}
+          <aside className="order-2 flex min-h-0 flex-col gap-3 xl:order-1">
             <NewsFeed news={state.news} className="min-h-0 flex-1" />
+            <Leaderboard state={state} className="min-h-[96px] shrink-0" />
           </aside>
 
           {/* CENTRE — the primary focus */}
@@ -734,8 +744,7 @@ export function GameScreen({
               doubleTrade={doubleTrade}
             />
             <Wallet state={state} />
-            <Portfolio state={state} className="min-h-0 flex-1" />
-            <Leaderboard state={state} className="min-h-0 flex-[0_1_auto]" />
+            <Portfolio state={state} className="min-h-[96px] flex-1" />
           </aside>
         </div>
       </main>

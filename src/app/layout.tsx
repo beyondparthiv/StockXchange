@@ -37,7 +37,7 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex h-full flex-col">
         <Script id="theme-init" strategy="beforeInteractive">
           {themeInit}
         </Script>

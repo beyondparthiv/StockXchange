@@ -63,11 +63,11 @@ export function OrderPanel({
   const step = (d: number) => setQty((q) => Math.max(1, q + d));
 
   return (
-    <section className="rounded-lg border border-line bg-surface shadow-panel">
+    <section className="shrink-0 rounded-lg border border-line bg-surface shadow-panel">
       {/* Identity — always present, always obvious. */}
-      <div className="border-b border-line p-4">
+      <div className="border-b border-line p-3">
         <div className="flex items-center gap-2.5">
-          {company && <CompanyLogo company={company} size={30} />}
+          {company && <CompanyLogo company={company} size={24} />}
           <div className="min-w-0">
             <div className="t-ticker text-sm text-ink">{ticker}</div>
             <div className="truncate text-[0.6875rem] text-ink-faint">
@@ -76,30 +76,31 @@ export function OrderPanel({
           </div>
         </div>
 
-        <div className="mt-2.5 flex items-baseline gap-2">
+        <div className="mt-2 flex items-baseline gap-2">
           <span className="t-figure text-ink">{formatMoney(price)}</span>
           {move && (
             <span className={`t-value ${directionClass(move.direction)}`}>
               {formatPercent(move.percent)}
             </span>
           )}
-        </div>
-
-        <div className="mt-1.5 flex gap-3 text-[0.6875rem] text-ink-faint">
-          <span>
-            Max{" "}
-            <span className={`font-mono ${doubleTrade ? "text-accent" : "text-ink-soft"}`}>
-              {maxBuy}
+          {/* Max and held ride the price line rather than taking their own
+              row — the rail has a hard height budget on a 1366x768 screen. */}
+          <span className="ml-auto text-right text-[0.625rem] leading-tight text-ink-faint">
+            <span className="block">
+              Max{" "}
+              <span className={`font-mono ${doubleTrade ? "text-accent" : "text-ink-soft"}`}>
+                {maxBuy}
+              </span>
+              {doubleTrade && <span className="ml-0.5 text-accent">2×</span>}
             </span>
-            {doubleTrade && <span className="ml-1 text-accent">2×</span>}
-          </span>
-          <span>
-            Held <span className="font-mono text-ink-soft">{held}</span>
+            <span className="block">
+              Held <span className="font-mono text-ink-soft">{held}</span>
+            </span>
           </span>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-3">
         <div className="flex items-center justify-between">
           <span className="t-label">Quantity</span>
           <div className="flex items-center gap-2">
@@ -126,17 +127,17 @@ export function OrderPanel({
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+        <div className="mt-2.5 flex items-center justify-between border-t border-line pt-2.5">
           <span className="t-label">Estimated total</span>
           <span className="t-value text-sm text-ink">{formatMoney(total)}</span>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"
             disabled={!canSell}
             onClick={() => onSubmit("sell", ticker, qty)}
-            className="interactive rounded-md border border-down/40 py-2.5 text-sm font-semibold text-down hover:bg-down/10 disabled:cursor-not-allowed disabled:opacity-35"
+            className="interactive rounded-md border border-down/40 py-2 text-sm font-semibold text-down hover:bg-down/10 disabled:cursor-not-allowed disabled:opacity-35"
           >
             Sell
           </button>
@@ -144,7 +145,7 @@ export function OrderPanel({
             type="button"
             disabled={!canBuy}
             onClick={() => onSubmit("buy", ticker, qty)}
-            className="cta rounded-md bg-up py-2.5 text-sm font-semibold text-white hover:bg-up-bright disabled:cursor-not-allowed disabled:opacity-35"
+            className="cta rounded-md bg-up py-2 text-sm font-semibold text-white hover:bg-up-bright disabled:cursor-not-allowed disabled:opacity-35"
           >
             Buy
           </button>
@@ -154,7 +155,7 @@ export function OrderPanel({
           type="button"
           onClick={onPass}
           disabled={state.phase !== "trading"}
-          className="interactive mt-2 w-full rounded-md border border-line-strong py-2 text-xs font-medium text-ink-soft hover:bg-surface-2 hover:text-ink disabled:opacity-35"
+          className="interactive mt-1.5 w-full rounded-md border border-line-strong py-1.5 text-xs font-medium text-ink-soft hover:bg-surface-2 hover:text-ink disabled:opacity-35"
         >
           Pass this round
         </button>

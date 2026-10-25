@@ -35,7 +35,7 @@ function Panel({
     <section
       className={`flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-panel ${className}`}
     >
-      <header className="flex shrink-0 items-baseline justify-between border-b border-line px-4 py-2">
+      <header className="flex shrink-0 items-baseline justify-between border-b border-line px-3 py-1.5">
         <h2 className="t-section">{title}</h2>
         {aside}
       </header>
@@ -71,22 +71,29 @@ export function Wallet({
   const worth = netWorth(state, player);
 
   return (
-    <Panel title="Wallet" className={className}>
-      <dl className="space-y-2">
-        <div className="flex items-baseline justify-between">
-          <dt className="t-label">Available cash</dt>
-          <dd className="t-value text-ink-soft">{formatMoney(player.cash)}</dd>
+    <Panel title="Wallet" className={`shrink-0 ${className}`} bodyClass="p-3">
+      {/*
+        Cash and holdings sit on one row rather than stacked. The rail has a
+        hard height budget and the leaderboard was falling off the bottom of
+        a 1366x768 screen; these two are reference figures, not the headline.
+      */}
+      <div className="flex items-baseline justify-between gap-3">
+        <div>
+          <div className="text-[0.625rem] text-ink-faint">Cash</div>
+          <div className="t-value text-ink-soft">{formatMoney(player.cash)}</div>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="t-label">Holdings</dt>
-          <dd className="t-value text-ink-soft">{formatMoney(holdings)}</dd>
+        <div className="text-right">
+          <div className="text-[0.625rem] text-ink-faint">Holdings</div>
+          <div className="t-value text-ink-soft">{formatMoney(holdings)}</div>
         </div>
-      </dl>
+      </div>
 
-      {/* Net worth is the number that decides the game, so it gets the weight. */}
-      <div className="mt-3 border-t border-line pt-3">
-        <dt className="t-section">Net worth</dt>
-        <dd className="t-figure mt-1 text-ink">{formatMoney(worth)}</dd>
+      {/* Net worth decides the game, so it keeps the weight. */}
+      <div className="mt-2 flex items-baseline justify-between border-t border-line pt-2">
+        <span className="t-section">Net worth</span>
+        <span className="font-mono text-lg font-semibold tabular-nums text-ink">
+          {formatMoney(worth)}
+        </span>
       </div>
     </Panel>
   );
@@ -126,7 +133,7 @@ export function Portfolio({
             return (
               <li
                 key={h.ticker}
-                className="flex items-center gap-2.5 px-4 py-2.5"
+                className="flex items-center gap-2.5 px-3 py-1.5"
               >
                 {company && <CompanyLogo company={company} size={20} />}
                 <div className="min-w-0 flex-1">
@@ -173,7 +180,7 @@ export function Leaderboard({
           return (
             <li
               key={p.id}
-              className={`flex items-center gap-2.5 px-4 py-2 ${
+              className={`flex items-center gap-2.5 px-3 py-1.5 ${
                 isMe ? "bg-accent-soft" : ""
               }`}
             >
@@ -214,7 +221,23 @@ export function NewsFeed({
   className?: string;
 }) {
   return (
-    <Panel title="Market news" bodyClass="" className={className}>
+    /*
+      Caps at roughly four items and scrolls the rest. The feed grows every
+      day, and an unbounded list either pushes the standings off screen or
+      leaves a tall empty panel on day one.
+    */
+    <Panel
+      title="Market news"
+      bodyClass=""
+      className={className}
+      aside={
+        news.length > 4 ? (
+          <span className="text-[0.625rem] text-ink-faint">
+            {news.length} items
+          </span>
+        ) : undefined
+      }
+    >
       {news.length === 0 ? (
         <Empty>No news yet.</Empty>
       ) : (
