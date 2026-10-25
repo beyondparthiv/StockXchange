@@ -782,6 +782,174 @@ body {
   color: var(--color-accent);
 }
 
+/* =========================================================================
+   BULL / BEAR
+   Emblems behind the trading floor. Opacity is deliberately low — they are
+   atmosphere, and the board has to stay the thing you read.
+   ========================================================================= */
+
+.bullbear {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+.bullbear-bull,
+.bullbear-bear {
+  position: absolute;
+}
+.bullbear-bull {
+  width: clamp(260px, 28vw, 520px);
+  aspect-ratio: 230 / 170;
+}
+.bullbear-bear {
+  width: clamp(190px, 19vw, 340px);
+  aspect-ratio: 190 / 230;
+}
+.bullbear-bull {
+  left: -2%;
+  bottom: 0;
+  color: var(--c-up);
+  opacity: 0.07;
+  animation: bull-charge 26s ease-in-out infinite;
+}
+.bullbear-bear {
+  /*
+    Bottom-centre-right, not top-right: the right rail is ~300px of opaque
+    panels and the bear disappeared behind it entirely. This sits in the empty
+    band under the intelligence grid, opposite the bull.
+  */
+  left: 50%;
+  bottom: 0;
+  color: var(--c-down);
+  opacity: 0.06;
+  animation: bear-prowl 31s ease-in-out infinite;
+}
+
+/* The bull pushes up and to the right; the bear presses down and left. */
+@keyframes bull-charge {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-3deg) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -5%, 0) rotate(1deg) scale(1.05);
+  }
+}
+@keyframes bear-prowl {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(3deg) scale(1);
+  }
+  50% {
+    transform: translate3d(-3%, 5%, 0) rotate(-1deg) scale(1.04);
+  }
+}
+
+@media (max-width: 1100px) {
+  /* Not enough clear margin at this width — they end up under the panels. */
+  .bullbear {
+    display: none;
+  }
+}
+
+/* =========================================================================
+   GAME BOARD INTERACTION
+   ========================================================================= */
+
+/* A tile whose price just settled, tinted by direction. */
+.tile-flash-up {
+  animation: tile-flash-up 900ms var(--ease-out);
+}
+.tile-flash-down {
+  animation: tile-flash-down 900ms var(--ease-out);
+}
+@keyframes tile-flash-up {
+  0% {
+    box-shadow: inset 0 0 0 1px var(--c-up), 0 0 22px -6px var(--c-up);
+    background-color: color-mix(in srgb, var(--c-up) 12%, var(--color-surface));
+  }
+  100% {
+    box-shadow: none;
+    background-color: var(--color-surface);
+  }
+}
+@keyframes tile-flash-down {
+  0% {
+    box-shadow: inset 0 0 0 1px var(--c-down), 0 0 22px -6px var(--c-down);
+    background-color: color-mix(in srgb, var(--c-down) 12%, var(--color-surface));
+  }
+  100% {
+    box-shadow: none;
+    background-color: var(--color-surface);
+  }
+}
+
+/* Price text nudges in the direction it moved as it changes. */
+@keyframes figure-up {
+  0% {
+    transform: translateY(5px);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes figure-down {
+  0% {
+    transform: translateY(-5px);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+.figure-up {
+  animation: figure-up 420ms var(--ease-out);
+}
+.figure-down {
+  animation: figure-down 420ms var(--ease-out);
+}
+
+/* Round/day transition card. */
+@keyframes transition-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.transition-card {
+  animation: transition-in 380ms var(--ease-out) both;
+}
+
+/* The timer bar draining through the order window. */
+.timer-bar {
+  transition: width 1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bullbear-bull,
+  .bullbear-bear,
+  .tile-flash-up,
+  .tile-flash-down,
+  .figure-up,
+  .figure-down,
+  .transition-card {
+    animation: none;
+  }
+  .timer-bar {
+    transition: none;
+  }
+}
+
 /* Skeleton shimmer — calmer than a pulsing opacity block. */
 @keyframes shimmer {
   100% {

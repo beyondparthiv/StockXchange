@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toMessage } from "@/lib/supabase/errors";
+import { GameScreen } from "@/components/game/game-screen";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { shortINR } from "@/lib/game/config";
@@ -209,18 +210,9 @@ export default function Lobby({
   }
 
   if (status === "in_game") {
-    return (
-      <main className="mx-auto w-full max-w-md px-4 py-20 text-center">
-        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-line-strong border-t-accent" />
-        <h1 className="t-title text-ink">
-          Game starting…
-        </h1>
-        <p className="mt-2 text-sm text-ink-soft">
-          The live trading floor arrives in Phase 5. For now, the room has
-          started.
-        </p>
-      </main>
-    );
+    // The board currently runs on mock state (lib/game/mock.ts) — the room's
+    // own config and roster are not wired in until the engine exists.
+    return <GameScreen />;
   }
 
   const readyCount = players.filter((p) => p.is_ready).length;
