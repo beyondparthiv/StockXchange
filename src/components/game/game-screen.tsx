@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getCompany } from "@/lib/brand/companies";
 import { CompanyLogo } from "@/components/brand/company-logo";
 import { GameHeader, PhaseTransition } from "@/components/game/game-header";
@@ -55,6 +55,18 @@ export function GameScreen({
     title: string;
     sub: string;
   } | null>(null);
+  const [engineDown, setEngineDown] = useState<string | null>(null);
+
+  // Stable id so the engine's seeded RNG gives this game its own market.
+  const [gameId] = useState(
+    () => `g-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+  );
+
+  // Settlement needs the CURRENT quotes, but the round effect is keyed on
+  // day+round and must not re-run when a price changes. A ref gives it live
+  // data without widening the dependencies.
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const pushToast = useCallback((text: string, side: TradeSide) => {
     const id = Date.now() + Math.random();
@@ -171,28 +183,34 @@ export function GameScreen({
 
 
   /*
-   * MOCK PACING — replace with the engine.
+   * Round loop.
    *
-   * The engine will own the clock, settlement, and progression. Until it
-   * exists this drives the order window locally, so the round/day transitions
-   * and price-flash animations can actually be seen and reviewed. The price
-   * nudge below is a presentation placeholder, deliberately trivial and
-   * clearly not a pricing model.
+   * The clock runs here; settlement comes from the price engine via
+   * /api/game/settle. The engine decides the new prices, deals the signal
+   * cards for the round about to open, and generates news on day boundaries
+   * -- so each round brings fresh intelligence and each new day brings fresh
+   * headlines, and the cards genuinely predict the move because the engine
+   * derives them from the same draw it settles with.
    *
-   * Keyed on day+round, NOT on secondsLeft or phase. The sequence sets state
-   * as it runs, and if those writes changed this effect's dependencies React
-   * would tear it down mid-flight and cancel the pending timeouts — which is
-   * exactly what stopped the transition from ever appearing. Day and round
-   * stay put until the final step, so the whole sequence survives, and
-   * changing them at the end is what starts the next round.
+   * If the engine is unreachable the round still advances on a local
+   * fallback, because a stopped engine should degrade the game rather than
+   * freeze it mid-session.
+   *
+   * Keyed on day+round, NOT on secondsLeft or phase. The sequence writes
+   * state as it runs; if those writes changed this effect's dependencies
+   * React would tear it down mid-flight and cancel the pending timeouts --
+   * which is exactly what stopped the transition from ever appearing. Day
+   * and round hold still until the final step, and changing them there is
+   * what starts the next round.
    */
   useEffect(() => {
     if (state.phase === "finished") return;
 
+    let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
-    const roundsPerDay = state.roundsPerDay;
     const day = state.day;
     const round = state.round;
+    const roundsPerDay = state.roundsPerDay;
     const lastRoundOfDay = round >= roundsPerDay;
     const lastDay = day >= state.config.days;
 
@@ -205,30 +223,125 @@ export function GameScreen({
 
     const windowMs = (state.secondsLeft ?? state.config.roundTimerSec) * 1000;
 
-    // 1. Settle: roll NOW into LAST and move prices, so the tiles flash.
-    timers.push(
-      setTimeout(() => {
-        clearInterval(tick);
-        setState((prev) => ({
+    async function settleRound() {
+      clearInterval(tick);
+      if (cancelled) return;
+
+      setState((prev) => ({ ...prev, phase: "settling", secondsLeft: null }));
+
+      type EngineQuote = {
+        ticker: string;
+        initial: number;
+        last_round: number;
+        current: number;
+        frozen: boolean;
+      };
+      type EngineReply = {
+        quotes?: EngineQuote[];
+        next_signals?: { id: string; ticker: string; delta: number }[];
+        news?: {
+          id: string;
+          day: number;
+          ticker: string | null;
+          headline: string;
+          body?: string;
+        }[];
+      };
+
+      let settled: EngineReply | null = null;
+
+      try {
+        const res = await fetch("/api/game/settle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "settle",
+            gameId,
+            day,
+            round,
+            roundsPerDay,
+            quotes: stateRef.current.quotes.map((q) => ({
+              ticker: q.ticker,
+              initial: q.initial,
+              last_round: q.lastRound,
+              current: q.current,
+              frozen: q.frozen,
+            })),
+          }),
+        });
+        const data = await res.json();
+        if (data.ok) settled = data as EngineReply;
+        else setEngineDown(data.error ?? "Price engine unavailable");
+      } catch (e) {
+        setEngineDown(
+          e instanceof Error ? e.message : "Price engine unavailable",
+        );
+      }
+
+      if (cancelled) return;
+
+      setState((prev) => {
+        if (settled?.quotes) {
+          setEngineDown(null);
+          const fresh = settled.next_signals ?? [];
+          const incoming = settled.news ?? [];
+          return {
+            ...prev,
+            quotes: settled.quotes.map((q) => ({
+              ticker: q.ticker,
+              initial: q.initial,
+              lastRound: q.last_round,
+              current: q.current,
+              frozen: q.frozen,
+            })),
+            // Fresh intelligence for the round about to open.
+            signals:
+              fresh.length > 0
+                ? fresh.map((sg) => ({
+                    id: sg.id,
+                    ticker: sg.ticker,
+                    delta: sg.delta,
+                  }))
+                : prev.signals,
+            // News only arrives on a day boundary; keep the feed otherwise.
+            news:
+              incoming.length > 0
+                ? [
+                    ...incoming.map((n) => ({
+                      id: n.id,
+                      day: n.day,
+                      ticker: n.ticker,
+                      headline: n.headline,
+                      body: n.body,
+                    })),
+                    ...prev.news,
+                  ].slice(0, 12)
+                : prev.news,
+          };
+        }
+
+        // Fallback: move prices by the signal they advertised, so the board
+        // keeps running even with the engine down.
+        return {
           ...prev,
-          phase: "settling",
-          secondsLeft: null,
           quotes: prev.quotes.map((q) => {
             if (q.frozen) return { ...q, lastRound: q.current };
-            const signal = prev.signals.find((sg) => sg.ticker === q.ticker);
+            const sg = prev.signals.find((x) => x.ticker === q.ticker);
             return {
               ...q,
               lastRound: q.current,
-              current: Math.max(100, q.current + (signal?.delta ?? 0)),
+              current: Math.max(100, q.current + (sg?.delta ?? 0)),
             };
           }),
-        }));
-      }, windowMs),
-    );
+        };
+      });
+    }
 
-    // 2. Announce.
+    timers.push(setTimeout(() => void settleRound(), windowMs));
+
     timers.push(
       setTimeout(() => {
+        if (cancelled) return;
         setTransition(
           lastRoundOfDay
             ? {
@@ -244,12 +357,12 @@ export function GameScreen({
           ...prev,
           phase: lastRoundOfDay ? "day-complete" : "round-complete",
         }));
-      }, windowMs + 1100),
+      }, windowMs + 1400),
     );
 
-    // 3. Open the next round — this changes the deps and restarts the cycle.
     timers.push(
       setTimeout(() => {
+        if (cancelled) return;
         setTransition(null);
         setState((prev) =>
           lastDay && lastRoundOfDay
@@ -266,14 +379,15 @@ export function GameScreen({
                 })),
               },
         );
-      }, windowMs + 3400),
+      }, windowMs + 3600),
     );
 
     return () => {
+      cancelled = true;
       clearInterval(tick);
       timers.forEach(clearTimeout);
     };
-    // Intentionally keyed on the round only — see the note above.
+    // Intentionally keyed on the round only -- see the note above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.day, state.round]);
 
