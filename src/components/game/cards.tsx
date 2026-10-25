@@ -3,6 +3,7 @@
 import { getCompany } from "@/lib/brand/companies";
 import { CompanyLogo } from "@/components/brand/company-logo";
 import { formatSigned, type MarketSignal, type SpecialCard } from "@/lib/game/state";
+import { specialInfo } from "@/lib/game/specials";
 
 /**
  * The card grid: six columns. Columns 1–5 hold ten market signals in two rows;
@@ -68,7 +69,9 @@ function SpecialCardTile({
       type="button"
       disabled={card.used}
       onClick={() => onPlay(card.id)}
-      title={card.effect}
+      title={`${card.effect}
+
+${specialInfo(card.key).action}`}
       className={`interactive flex w-full flex-1 flex-col justify-between rounded-md border border-dashed p-2.5 text-left ${
         card.used
           ? "border-line bg-surface-2 opacity-50"

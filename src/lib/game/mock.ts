@@ -12,7 +12,7 @@
  */
 
 import { DEFAULT_CONFIG, type GameConfig } from "@/lib/game/config";
-import { PLAYER_SPECIAL_CARDS } from "@/lib/game/cards";
+import { dealSpecials } from "@/lib/game/specials";
 import type { GameState } from "@/lib/game/state";
 
 const d = (dollars: number) => Math.round(dollars * 100);
@@ -94,23 +94,9 @@ export function mockGameState(
       { id: "s10", ticker: "NFLX", delta: d(-4) },
     ],
 
-    // Two specials in column six — one spent, one available.
-    specials: [
-      {
-        id: "sp1",
-        key: "insider_tip",
-        name: PLAYER_SPECIAL_CARDS[0].name,
-        effect: PLAYER_SPECIAL_CARDS[0].effect,
-        used: false,
-      },
-      {
-        id: "sp2",
-        key: "price_shield",
-        name: PLAYER_SPECIAL_CARDS[1].name,
-        effect: PLAYER_SPECIAL_CARDS[1].effect,
-        used: true,
-      },
-    ],
+    // Placeholder pair, deterministic so server and client agree. The real
+    // deal replaces these once the game has an id (see game-screen).
+    specials: dealSpecials("opening", 2),
 
     news: [
       { id: "n1", day: 1, ticker: "TSLA", headline: "Tesla lifts delivery guidance for the quarter", body: "Management points to stronger demand in two key markets." },

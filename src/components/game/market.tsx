@@ -24,10 +24,13 @@ export function StockTile({
   quote,
   selected,
   onSelect,
+  tip,
 }: {
   quote: Quote;
   selected: boolean;
   onSelect: (ticker: string) => void;
+  /** Insider Tip's revealed direction for this ticker, if played on it. */
+  tip?: "up" | "down" | "flat" | null;
 }) {
   const company = getCompany(quote.ticker);
   const move = moveOf(quote);
@@ -72,6 +75,20 @@ export function StockTile({
             {company?.name ?? quote.ticker}
           </div>
         </div>
+        {tip && (
+          <span
+            title="Insider Tip: true direction of the next move"
+            className={`ml-auto rounded-sm px-1.5 py-0.5 text-[0.625rem] font-semibold ${
+              tip === "up"
+                ? "bg-up/15 text-up"
+                : tip === "down"
+                  ? "bg-down/15 text-down"
+                  : "bg-ink/10 text-ink-faint"
+            }`}
+          >
+            {tip === "up" ? "▲ TIP" : tip === "down" ? "▼ TIP" : "— TIP"}
+          </span>
+        )}
         {quote.frozen && (
           <span className="ml-auto rounded-sm bg-ink/10 px-1.5 py-0.5 text-[0.625rem] font-medium uppercase tracking-wider text-ink-faint">
             Frozen
@@ -121,10 +138,12 @@ export function MarketGrid({
   quotes,
   selected,
   onSelect,
+  tip,
 }: {
   quotes: Quote[];
   selected: string;
   onSelect: (ticker: string) => void;
+  tip?: { ticker: string; direction: string } | null;
 }) {
   return (
     <section>
@@ -136,6 +155,11 @@ export function MarketGrid({
             quote={q}
             selected={q.ticker === selected}
             onSelect={onSelect}
+            tip={
+              tip && tip.ticker === q.ticker
+                ? (tip.direction as "up" | "down" | "flat")
+                : null
+            }
           />
         ))}
       </div>

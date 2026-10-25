@@ -16,6 +16,7 @@ import {
 } from "@/components/game/panels";
 import { mockGameState, type Seat } from "@/lib/game/mock";
 import { applyOrder } from "@/lib/game/orders";
+import { dealSpecials, specialInfo } from "@/lib/game/specials";
 import { botOrdersForRound } from "@/lib/game/bots";
 import type { GameConfig } from "@/lib/game/config";
 import type { GameState, TradeSide } from "@/lib/game/state";
@@ -44,24 +45,35 @@ export function GameScreen({
   meId?: string;
   config?: GameConfig;
 } = {}) {
-  // Prices, signals and news are still mock; the roster and config are real.
+  /*
+   * The game's id, created on the client AFTER mount.
+   *
+   * Generating it during render with Date.now()/Math.random() desynced the
+   * server and client renders: the opening specials are seeded from it, so
+   * SSR dealt one pair of cards and hydration dealt another, and React threw
+   * the whole tree away. Null until mounted means both renders agree.
+   */
+  const [gameId, setGameId] = useState<string | null>(null);
+
+  // The roster and config are real; prices and cards come from the engine.
   const [state, setState] = useState<GameState>(() =>
     mockGameState(seats, meId, config),
   );
   const [selected, setSelected] = useState(state.quotes[0]?.ticker ?? "");
   const [historyTab, setHistoryTab] = useState<"mine" | "all">("mine");
   const [historyOpen, setHistoryOpen] = useState(false);
+  // Insider Tip's revealed direction, cleared when the round turns over.
+  const [tip, setTip] = useState<{ ticker: string; direction: string } | null>(
+    null,
+  );
+  // Double Trade: lets the next order exceed the affordable maximum.
+  const [doubleTrade, setDoubleTrade] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [transition, setTransition] = useState<{
     title: string;
     sub: string;
   } | null>(null);
   const [engineDown, setEngineDown] = useState<string | null>(null);
-
-  // Stable id so the engine's seeded RNG gives this game its own market.
-  const [gameId] = useState(
-    () => `g-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-  );
 
   // Settlement needs the CURRENT quotes, but the round effect is keyed on
   // day+round and must not re-run when a price changes. A ref gives it live
@@ -180,14 +192,139 @@ export function GameScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.day, state.round, state.phase]);
 
-  const playSpecial = useCallback((id: string) => {
-    setState((prev) => ({
-      ...prev,
-      specials: prev.specials.map((c) =>
-        c.id === id ? { ...c, used: true } : c,
-      ),
-    }));
-  }, []);
+  /*
+   * Special cards, with effects that actually happen.
+   *
+   * Previously this only greyed the card out — the player spent their one
+   * use on nothing and had no way to tell. Each card now either does its
+   * thing or refuses and says why, and cards whose mechanic does not exist
+   * yet are never dealt (see lib/game/specials.ts).
+   */
+  const playSpecial = useCallback(
+    async (id: string) => {
+      const card = stateRef.current.specials.find((c) => c.id === id);
+      if (!card || card.used) return;
+      const info = specialInfo(card.key);
+
+      if (!info.implemented) {
+        pushToast(`${info.name} is not available yet`, "sell");
+        return;
+      }
+
+      if (card.key === "insider_tip") {
+        // Ask the engine for the true DIRECTION of the selected company's
+        // next move. Direction only: knowing the size would remove the
+        // decision rather than inform it.
+        const cur = stateRef.current;
+        try {
+          const res = await fetch("/api/game/settle", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "insight",
+              gameId,
+              day: cur.day,
+              round: cur.round,
+              ticker: selected,
+              quotes: cur.quotes.map((q) => ({
+                ticker: q.ticker,
+                initial: q.initial,
+                last_round: q.lastRound,
+                current: q.current,
+                frozen: q.frozen,
+              })),
+            }),
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            pushToast("Insider Tip failed — engine unavailable", "sell");
+            return;
+          }
+          setTip({ ticker: selected, direction: data.direction });
+          pushToast(
+            `Insider Tip: ${selected} will move ${data.direction.toUpperCase()}`,
+            data.direction === "down" ? "sell" : "buy",
+          );
+        } catch {
+          pushToast("Insider Tip failed — engine unavailable", "sell");
+          return;
+        }
+      }
+
+      if (card.key === "double_trade") {
+        setDoubleTrade(true);
+        pushToast("Double Trade armed — your next order can go 2× over", "buy");
+      }
+
+      if (card.key === "rewind_trade") {
+        const cur = stateRef.current;
+        const mine = cur.activity.find(
+          (a) =>
+            a.playerId === cur.meId &&
+            a.day === cur.day &&
+            a.round === cur.round,
+        );
+        if (!mine) {
+          pushToast("Nothing to rewind this round", "sell");
+          return; // don't burn the card on a no-op
+        }
+        // Reverse the fill: undo the cash and share movement, drop the row.
+        setState((prev) => {
+          const players = prev.players.map((p) => {
+            if (p.id !== prev.meId) return p;
+            const cost = mine.price * mine.shares;
+            const existing = p.holdings.find((h) => h.ticker === mine.ticker);
+            if (mine.side === "buy") {
+              const shares = (existing?.shares ?? 0) - mine.shares;
+              return {
+                ...p,
+                cash: p.cash + cost,
+                holdings: p.holdings
+                  .map((h) =>
+                    h.ticker === mine.ticker ? { ...h, shares } : h,
+                  )
+                  .filter((h) => h.shares > 0),
+              };
+            }
+            const shares = (existing?.shares ?? 0) + mine.shares;
+            return {
+              ...p,
+              cash: p.cash - cost,
+              holdings: existing
+                ? p.holdings.map((h) =>
+                    h.ticker === mine.ticker ? { ...h, shares } : h,
+                  )
+                : [
+                    ...p.holdings,
+                    {
+                      ticker: mine.ticker,
+                      shares: mine.shares,
+                      avgCost: mine.price,
+                    },
+                  ],
+            };
+          });
+          return {
+            ...prev,
+            players,
+            activity: prev.activity.filter((a) => a.id !== mine.id),
+          };
+        });
+        pushToast(
+          `Rewound: ${mine.side} ${mine.shares} ${mine.ticker}`,
+          "buy",
+        );
+      }
+
+      setState((prev) => ({
+        ...prev,
+        specials: prev.specials.map((c) =>
+          c.id === id ? { ...c, used: true } : c,
+        ),
+      }));
+    },
+    [gameId, selected, pushToast],
+  );
 
   const pass = useCallback(() => {
     setState((prev) => ({
@@ -213,6 +350,8 @@ export function GameScreen({
    */
   useEffect(() => {
     let cancelled = false;
+    const id = `g-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    setGameId(id);
 
     (async () => {
       try {
@@ -221,7 +360,7 @@ export function GameScreen({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "deal",
-            gameId,
+            gameId: id,
             days: stateRef.current.config.days,
             roundsPerDay: stateRef.current.roundsPerDay,
           }),
@@ -235,6 +374,9 @@ export function GameScreen({
         setEngineDown(null);
         setState((prev) => ({
           ...prev,
+          // Specials are dealt here too, from the real game id, so each game
+          // gets its own pair rather than a fixed opening hand.
+          specials: dealSpecials(id, 2),
           quotes: data.quotes.map(
             (q: {
               ticker: string;
@@ -287,7 +429,7 @@ export function GameScreen({
     };
     // Once per game.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameId]);
+  }, []);
 
   /*
    * Round loop.
@@ -311,7 +453,7 @@ export function GameScreen({
    * what starts the next round.
    */
   useEffect(() => {
-    if (state.phase === "finished") return;
+    if (state.phase === "finished" || !gameId) return;
 
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -496,7 +638,7 @@ export function GameScreen({
     };
     // Intentionally keyed on the round only -- see the note above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.day, state.round]);
+  }, [state.day, state.round, gameId]);
 
   return (
     <>
@@ -539,6 +681,7 @@ export function GameScreen({
               quotes={state.quotes}
               selected={selected}
               onSelect={setSelected}
+              tip={tip}
             />
             <CardGrid
               signals={state.signals}
@@ -555,6 +698,7 @@ export function GameScreen({
               ticker={selected}
               onSubmit={submitOrder}
               onPass={pass}
+              doubleTrade={doubleTrade}
             />
             <Wallet state={state} />
             <Portfolio state={state} className="min-h-0 flex-1" />

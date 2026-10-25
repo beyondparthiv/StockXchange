@@ -23,6 +23,9 @@ from .models import (
     Company,
     DealRequest,
     DealResult,
+    Direction,
+    InsightRequest,
+    InsightResult,
     MarketEvent,
     RoundRequest,
     RoundResult,
@@ -93,6 +96,25 @@ def settle(req: RoundRequest) -> RoundResult:
         next_signals=next_signals,
         news=news,
         seed=seed_for(req.game_id, req.day, req.round, "prices"),
+    )
+
+
+def insight(req: InsightRequest) -> InsightResult:
+    """True direction of `ticker`'s move in (day, round).
+
+    Reads the same seeded draw settlement will use, so the answer is the
+    real future rather than a second guess at it. Direction only — see the
+    route docstring.
+    """
+    moves = predict_true_moves(
+        req.game_id, req.day, req.round, req.companies, req.quotes
+    )
+    delta = moves.get(req.ticker, 0)
+    return InsightResult(
+        ticker=req.ticker,
+        direction=(
+            Direction.UP if delta > 0 else Direction.DOWN if delta < 0 else Direction.FLAT
+        ),
     )
 
 

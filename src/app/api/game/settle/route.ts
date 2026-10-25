@@ -71,6 +71,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, ...data });
     }
 
+    if (action === "insight") {
+      const data = await engineFetch("/insight", {
+        game_id: gameId,
+        day: payload.day,
+        round: payload.round,
+        ticker: payload.ticker,
+        companies: roster,
+        quotes: payload.quotes ?? [],
+      });
+      return NextResponse.json({ ok: true, ...data });
+    }
+
     if (action === "settle") {
       const data = await engineFetch("/round/settle", {
         game_id: gameId,

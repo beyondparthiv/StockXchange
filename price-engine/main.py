@@ -30,8 +30,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from engine.models import DealRequest, DealResult, RoundRequest, RoundResult
-from engine.settle import deal_game, default_companies, settle
+from engine.models import (
+    DealRequest,
+    DealResult,
+    InsightRequest,
+    InsightResult,
+    RoundRequest,
+    RoundResult,
+)
+from engine.settle import deal_game, default_companies, insight, settle
 
 # Package version — bumped as the engine grows. Surfaced by /health so the web
 # app can confirm which engine build it is talking to.
@@ -131,3 +138,14 @@ def round_settle(req: RoundRequest) -> RoundResult:
     round about to start, and (on a day boundary) that day's news.
     """
     return settle(req)
+
+
+@app.post("/insight", response_model=InsightResult, tags=["game"])
+def round_insight(req: InsightRequest) -> InsightResult:
+    """True DIRECTION of one company's next move — the Insider Tip card.
+
+    Direction only, never magnitude. Knowing a stock will rise is a strong
+    edge; knowing it will rise by exactly $7 removes the decision entirely,
+    and the card's own rules text says direction.
+    """
+    return insight(req)

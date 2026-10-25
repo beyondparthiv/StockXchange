@@ -30,11 +30,14 @@ export function OrderPanel({
   ticker,
   onSubmit,
   onPass,
+  doubleTrade = false,
 }: {
   state: GameState;
   ticker: string;
   onSubmit: (side: TradeSide, ticker: string, qty: number) => void;
   onPass: () => void;
+  /** Double Trade card armed: the affordable cap is doubled for one order. */
+  doubleTrade?: boolean;
 }) {
   // Quantity resets per instrument because the parent remounts this panel on
   // ticker change (key={ticker}). Carrying a size chosen for a $60 stock over
@@ -47,7 +50,8 @@ export function OrderPanel({
   const price = priceOf(state, ticker);
   const move = quote ? moveOf(quote) : null;
 
-  const maxBuy = maxAffordable(state, player, ticker);
+  const baseMax = maxAffordable(state, player, ticker);
+  const maxBuy = doubleTrade ? baseMax * 2 : baseMax;
   const held = sharesHeld(player, ticker);
   const frozen = quote?.frozen ?? false;
   const tradingOpen = state.phase === "trading" && !frozen;
@@ -83,7 +87,11 @@ export function OrderPanel({
 
         <div className="mt-1.5 flex gap-3 text-[0.6875rem] text-ink-faint">
           <span>
-            Max <span className="font-mono text-ink-soft">{maxBuy}</span>
+            Max{" "}
+            <span className={`font-mono ${doubleTrade ? "text-accent" : "text-ink-soft"}`}>
+              {maxBuy}
+            </span>
+            {doubleTrade && <span className="ml-1 text-accent">2×</span>}
           </span>
           <span>
             Held <span className="font-mono text-ink-soft">{held}</span>

@@ -149,4 +149,20 @@ class DealResult(BaseModel):
     seed: int
 
 
+class InsightRequest(BaseModel):
+    """Ask for the true direction of one company's next move."""
+
+    game_id: str
+    day: int
+    round: int
+    ticker: str
+    companies: list[Company]
+    quotes: list[Quote]
+
+
+class InsightResult(BaseModel):
+    ticker: str
+    direction: Direction
+
+
 SettlementMode = Literal["normal", "frozen", "no_change"]
