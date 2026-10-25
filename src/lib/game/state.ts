@@ -93,6 +93,8 @@ export type Holding = {
 export type Player = {
   id: string;
   displayName: string;
+  /** Driven by the local bot engine rather than a human. */
+  isBot?: boolean;
   cash: Cents;
   holdings: Holding[];
   /** Set once the player has acted this round; drives the leaderboard ticks. */

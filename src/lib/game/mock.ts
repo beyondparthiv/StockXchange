@@ -19,8 +19,20 @@ const d = (dollars: number) => Math.round(dollars * 100);
 
 export const MOCK_ME = "p1";
 
-/** A seat at the table, as the lobby knows it. */
-export type Seat = { id: string; displayName: string };
+/** A seat at the table. `isBot` seats are driven by the local bot engine. */
+export type Seat = { id: string; displayName: string; isBot?: boolean };
+
+/** Opponent names for offline games. */
+const BOT_NAMES = ["Ava", "Rohan", "Mia", "Dev", "Nora"];
+
+/** `count` bot seats, for Play vs Bots and Practice Solo. */
+export function botSeats(count: number): Seat[] {
+  return Array.from({ length: Math.max(0, count) }, (_, i) => ({
+    id: `bot-${i + 1}`,
+    displayName: BOT_NAMES[i % BOT_NAMES.length],
+    isBot: true,
+  }));
+}
 
 /**
  * Build the opening state for a real room.
@@ -111,6 +123,7 @@ export function mockGameState(
     players: roster.map((seat) => ({
       id: seat.id,
       displayName: seat.displayName,
+      isBot: seat.isBot ?? false,
       cash: cfg.startingCash,
       actedThisRound: false,
       holdings: [],

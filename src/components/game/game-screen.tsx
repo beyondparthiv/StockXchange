@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { getCompany } from "@/lib/brand/companies";
 import { CompanyLogo } from "@/components/brand/company-logo";
 import { GameHeader, PhaseTransition } from "@/components/game/game-header";
-import { BullBearBackdrop } from "@/components/game/bull-bear";
 import { MarketGrid } from "@/components/game/market";
 import { CardGrid } from "@/components/game/cards";
 import { OrderPanel } from "@/components/game/order-panel";
@@ -268,7 +267,6 @@ export function GameScreen({
 
   return (
     <>
-      <BullBearBackdrop />
       <GameHeader state={state} />
       <PhaseTransition transition={transition} />
 
