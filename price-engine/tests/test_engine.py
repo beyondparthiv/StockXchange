@@ -167,6 +167,22 @@ def test_news_never_leaks_whether_it_is_true(companies, quotes):
         assert "truthful" not in row
 
 
+def test_truthful_never_survives_serialisation(companies, quotes):
+    """The API returns NewsItem directly, so model-level exclusion is what
+    actually protects this — not a helper the caller might forget."""
+    upcoming = predict_true_moves("g1", 1, 1, companies, quotes)
+    items = generate_news("g1", 1, companies, upcoming)
+    for n in items:
+        assert "truthful" not in n.model_dump()
+        assert "truthful" not in n.model_dump_json()
+    # and through a whole settle response, which is what the client receives
+    res = settle(
+        RoundRequest(game_id="g1", day=1, round=2, rounds_per_day=2,
+                     companies=companies, quotes=quotes)
+    )
+    assert "truthful" not in res.model_dump_json()
+
+
 def test_news_is_deterministic(companies, quotes):
     upcoming = predict_true_moves("g1", 1, 1, companies, quotes)
     a = generate_news("g1", 1, companies, upcoming)

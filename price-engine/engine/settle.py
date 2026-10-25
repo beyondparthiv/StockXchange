@@ -105,10 +105,10 @@ def default_companies() -> list[Company]:
     cents ($60–$100). TUNE FREELY.
     """
     return [
-        Company(ticker="TSLA", name="Tesla, Inc.", initial_price=9_500, volatility=0.065, drift=0.004),
-        Company(ticker="AAPL", name="Apple Inc.", initial_price=8_000, volatility=0.035, drift=0.003),
-        Company(ticker="AMZN", name="Amazon.com, Inc.", initial_price=7_200, volatility=0.045, drift=0.003),
-        Company(ticker="JPM", name="JPMorgan Chase & Co.", initial_price=8_800, volatility=0.025, drift=0.002),
-        Company(ticker="NFLX", name="Netflix, Inc.", initial_price=10_000, volatility=0.055, drift=0.002),
-        Company(ticker="CVS", name="CVS Health Corporation", initial_price=6_000, volatility=0.030, drift=0.001),
+        Company(ticker="TSLA", short_name="Tesla", name="Tesla, Inc.", initial_price=9_500, volatility=0.065, drift=0.004),
+        Company(ticker="AAPL", short_name="Apple", name="Apple Inc.", initial_price=8_000, volatility=0.035, drift=0.003),
+        Company(ticker="AMZN", short_name="Amazon", name="Amazon.com, Inc.", initial_price=7_200, volatility=0.045, drift=0.003),
+        Company(ticker="JPM", short_name="JPMorgan", name="JPMorgan Chase & Co.", initial_price=8_800, volatility=0.025, drift=0.002),
+        Company(ticker="NFLX", short_name="Netflix", name="Netflix, Inc.", initial_price=10_000, volatility=0.055, drift=0.002),
+        Company(ticker="CVS", short_name="CVS Health", name="CVS Health Corporation", initial_price=6_000, volatility=0.030, drift=0.001),
     ]

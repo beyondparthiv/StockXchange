@@ -185,7 +185,7 @@ def generate_news(
                 id=f"{game_id}-d{day}-n{i}",
                 day=day,
                 ticker=ticker,
-                headline=template.format(name=company.name),
+                headline=template.format(name=company.short_name or company.name),
                 truthful=truthful,
             )
         )

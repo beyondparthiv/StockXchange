@@ -33,6 +33,9 @@ class Company(BaseModel):
 
     ticker: str
     name: str
+    #: Name used in headlines. "Tesla misses production targets" reads like
+    #: news; "Tesla, Inc. misses production targets" reads like a filing.
+    short_name: str = ""
     initial_price: Cents
     volatility: float = Field(default=0.045, ge=0.0, le=0.5)
     drift: float = Field(
@@ -69,9 +72,14 @@ class NewsItem(BaseModel):
     ticker: str | None
     headline: str
     body: str | None = None
-    #: Whether this item actually reflects the move. Server-side only — never
-    #: serialise this to clients, or the game stops being a guessing game.
-    truthful: bool = True
+    #: Whether this item actually reflects the move.
+    #:
+    #: `exclude=True` keeps it out of every serialisation, which is the only
+    #: reliable guard: a `public_news()`-style helper only protects the call
+    #: sites that remember to use it, and the API returns this model directly.
+    #: Leaking it would tell the player exactly which headlines are lies and
+    #: delete the bluffing layer outright.
+    truthful: bool = Field(default=True, exclude=True)
 
 
 class PriceChange(BaseModel):
