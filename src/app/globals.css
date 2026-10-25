@@ -86,6 +86,8 @@
   --c-down: #ff4d4d;
   --c-down-bright: #ff7a7a;
 
+  --c-warn: #e0a13a;
+
   --sh-panel: 0 1px 2px rgba(0, 0, 0, 0.5);
   --sh-lift: 0 10px 30px -12px rgba(0, 0, 0, 0.8);
 
@@ -123,6 +125,7 @@
   --color-up-bright: var(--c-up-bright);
   --color-down: var(--c-down);
   --color-down-bright: var(--c-down-bright);
+  --color-warn: var(--c-warn);
 
   /* --- Typography --- */
   --font-sans: var(--ff-sans), ui-sans-serif, system-ui, sans-serif;

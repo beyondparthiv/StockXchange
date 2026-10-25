@@ -65,8 +65,13 @@ export function GameScreen({
   // Settlement needs the CURRENT quotes, but the round effect is keyed on
   // day+round and must not re-run when a price changes. A ref gives it live
   // data without widening the dependencies.
+  //
+  // Written in an effect, not during render: mutating a ref while rendering
+  // is unsafe under concurrent rendering, where a render can be thrown away.
   const stateRef = useRef(state);
-  stateRef.current = state;
+  useEffect(() => {
+    stateRef.current = state;
+  });
 
   const pushToast = useCallback((text: string, side: TradeSide) => {
     const id = Date.now() + Math.random();
@@ -395,6 +400,13 @@ export function GameScreen({
     <>
       <GameHeader state={state} />
       <PhaseTransition transition={transition} />
+
+      {engineDown && (
+        <div className="animate-fade-in border-b border-warn/30 bg-warn/10 px-6 py-1.5 text-center text-[0.6875rem] font-medium text-warn">
+          Price engine unavailable — prices are moving on a local fallback.{" "}
+          <span className="text-ink-faint">({engineDown})</span>
+        </div>
+      )}
 
       <main className="mx-auto w-full max-w-[1800px] px-6 py-5">
         <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)_300px]">
