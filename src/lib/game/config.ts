@@ -16,7 +16,7 @@ export function isGameMode(value: string): value is GameMode {
 export type GameConfig = {
   /** Number of Days; each Day has 2 Rounds, so rounds = days * 2. */
   days: number;
-  /** Starting cash per player, in rupees. */
+  /** Starting cash per player, in cents. */
   startingCash: number;
   /** Number of companies in the market. */
   companies: number;
@@ -26,7 +26,7 @@ export type GameConfig = {
 
 export const DEFAULT_CONFIG: GameConfig = {
   days: 10,
-  startingCash: 15_000_000, // ₹1,50,00,000
+  startingCash: 1_000_000, // $10,000
   companies: 6,
   roundTimerSec: 90,
 };
@@ -36,32 +36,40 @@ export const LIMITS = {
   companies: { min: 4, max: 8, step: 1 },
 } as const;
 
-/** Selectable starting-cash amounts (rupees). */
-export const CASH_PRESETS = [5_000_000, 10_000_000, 15_000_000, 50_000_000];
+/** Selectable starting-cash amounts, in cents. With shares priced $60–$100,
+ *  $10,000 buys a meaningful but not unlimited position. */
+export const CASH_PRESETS = [500_000, 1_000_000, 2_500_000, 5_000_000];
 
 /** Selectable round-timer lengths (seconds). */
 export const TIMER_OPTIONS = [60, 90, 120, 180];
 
-/** Format rupees using Indian digit grouping, e.g. ₹1,50,00,000. */
-export function formatINR(amount: number): string {
-  return new Intl.NumberFormat("en-IN", {
+/**
+ * Format cents as US dollars, e.g. 1_000_000 -> "$10,000".
+ *
+ * Money is held as integer cents everywhere, so every formatter divides by
+ * 100 at the edge. Keeping the division here rather than at call sites is
+ * what stops half the app passing dollars by mistake.
+ */
+export function formatUSD(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "INR",
+    currency: "USD",
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(Math.round(cents / 100));
 }
 
-/** Short label for large amounts, e.g. "₹1.5 Cr", "₹50 L". */
-export function shortINR(amount: number): string {
-  if (amount >= 10_000_000) {
-    const cr = amount / 10_000_000;
-    return `₹${Number.isInteger(cr) ? cr : cr.toFixed(1)} Cr`;
+/** Compact label for large amounts, e.g. "$25K", "$1.5M". */
+export function shortUSD(cents: number): string {
+  const dollars = cents / 100;
+  if (dollars >= 1_000_000) {
+    const m = dollars / 1_000_000;
+    return `$${Number.isInteger(m) ? m : m.toFixed(1)}M`;
   }
-  if (amount >= 100_000) {
-    const l = amount / 100_000;
-    return `₹${Number.isInteger(l) ? l : l.toFixed(1)} L`;
+  if (dollars >= 1_000) {
+    const k = dollars / 1_000;
+    return `$${Number.isInteger(k) ? k : k.toFixed(1)}K`;
   }
-  return formatINR(amount);
+  return formatUSD(cents);
 }
 
 type ModeMeta = {

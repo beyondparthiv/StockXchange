@@ -8,16 +8,16 @@
  * and styled before the rules exist — and so filling in the engine later needs
  * no component changes.
  *
- * Money is held in paise (1/100 of a rupee) as integers. Floats accumulate
- * error once you start multiplying share counts by prices and summing P&L, and
- * a drifting net worth in a competitive game is a bug players will notice.
- * Format at the edges with `formatMoney`.
+ * Money is held in integer cents. Floats accumulate error once you start
+ * multiplying share counts by prices and summing P&L, and a drifting net
+ * worth in a competitive game is a bug players will notice. Format at the
+ * edges with `formatMoney`.
  */
 
 import type { GameConfig } from "@/lib/game/config";
 
-/** Integer paise. 100 paise = ₹1. */
-export type Paise = number;
+/** Integer cents. 100 cents = $1. */
+export type Cents = number;
 
 /* -------------------------------------------------------------------------
    Market
@@ -26,18 +26,18 @@ export type Paise = number;
 export type Quote = {
   ticker: string;
   /** Price at game start — the INIT column on a tile. */
-  initial: Paise;
+  initial: Cents;
   /** Price at the end of the previous round — the LAST column. */
-  lastRound: Paise;
+  lastRound: Cents;
   /** Live price — the NOW column, and the tile's visual focus. */
-  current: Paise;
+  current: Cents;
   /** True when a card (Share Suspended, Circuit Breaker) has locked trading. */
   frozen: boolean;
 };
 
 /** Signed change vs the previous round, and the direction for colouring. */
 export type Move = {
-  absolute: Paise;
+  absolute: Cents;
   /** Percent, already computed by the engine so the UI never does game maths. */
   percent: number;
   direction: "up" | "down" | "flat";
@@ -66,7 +66,7 @@ export type MarketSignal = {
   id: string;
   ticker: string;
   /** Hinted move. Sign carries the direction. */
-  delta: Paise;
+  delta: Cents;
 };
 
 /** A special card IS playable by its owner — the opposite of a signal. */
@@ -87,13 +87,13 @@ export type Holding = {
   ticker: string;
   shares: number;
   /** Average price paid, for the P&L column. */
-  avgCost: Paise;
+  avgCost: Cents;
 };
 
 export type Player = {
   id: string;
   displayName: string;
-  cash: Paise;
+  cash: Cents;
   holdings: Holding[];
   /** Set once the player has acted this round; drives the leaderboard ticks. */
   actedThisRound: boolean;
@@ -112,7 +112,7 @@ export type Activity = {
   side: TradeSide;
   ticker: string;
   shares: number;
-  price: Paise;
+  price: Cents;
   day: number;
   round: number;
   at: string;
@@ -170,23 +170,23 @@ export type GameState = {
    already decided. Keeping them here stops six components re-deriving them.
    ---------------------------------------------------------------------- */
 
-export function priceOf(state: GameState, ticker: string): Paise {
+export function priceOf(state: GameState, ticker: string): Cents {
   return state.quotes.find((q) => q.ticker === ticker)?.current ?? 0;
 }
 
-export function holdingsValue(state: GameState, p: Player): Paise {
+export function holdingsValue(state: GameState, p: Player): Cents {
   return p.holdings.reduce(
     (sum, h) => sum + h.shares * priceOf(state, h.ticker),
     0,
   );
 }
 
-export function netWorth(state: GameState, p: Player): Paise {
+export function netWorth(state: GameState, p: Player): Cents {
   return p.cash + holdingsValue(state, p);
 }
 
 /** Unrealised P&L on one holding at the current price. */
-export function holdingPnl(state: GameState, h: Holding): Paise {
+export function holdingPnl(state: GameState, h: Holding): Cents {
   return h.shares * (priceOf(state, h.ticker) - h.avgCost);
 }
 
@@ -213,20 +213,20 @@ export function leaderboard(state: GameState): Player[] {
    Formatting
    ---------------------------------------------------------------------- */
 
-const INR = new Intl.NumberFormat("en-IN", {
+const USD = new Intl.NumberFormat("en-US", {
   style: "currency",
-  currency: "INR",
+  currency: "USD",
   maximumFractionDigits: 0,
 });
 
-export function formatMoney(paise: Paise): string {
-  return INR.format(Math.round(paise / 100));
+export function formatMoney(cents: Cents): string {
+  return USD.format(Math.round(cents / 100));
 }
 
 /** Signed, for P&L and deltas — the sign is the point. */
-export function formatSigned(paise: Paise): string {
-  const s = formatMoney(Math.abs(paise));
-  return paise > 0 ? `+${s}` : paise < 0 ? `−${s}` : s;
+export function formatSigned(cents: Cents): string {
+  const s = formatMoney(Math.abs(cents));
+  return cents > 0 ? `+${s}` : cents < 0 ? `−${s}` : s;
 }
 
 export function formatPercent(pct: number): string {

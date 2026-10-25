@@ -23,7 +23,7 @@ import {
  * the identity block is the first thing in the panel and is never empty: logo,
  * ticker, company name, live price and move. Changing the selection re-renders
  * the whole panel, and the quantity resets to 1 — carrying a quantity sized
- * for a ₹560 stock over to a ₹6,000 one is how you fat-finger an order.
+ * for a $60 stock over to a $100 one is how you fat-finger an order.
  */
 export function OrderPanel({
   state,
@@ -37,8 +37,8 @@ export function OrderPanel({
   onPass: () => void;
 }) {
   // Quantity resets per instrument because the parent remounts this panel on
-  // ticker change (key={ticker}). Carrying a size chosen for a ₹560 stock over
-  // to a ₹6,000 one is how you fat-finger an order.
+  // ticker change (key={ticker}). Carrying a size chosen for a $60 stock over
+  // to a $100 one is how you fat-finger an order.
   const [qty, setQty] = useState(1);
 
   const player = me(state);

@@ -8,8 +8,8 @@ import {
   LIMITS,
   MODE_META,
   TIMER_OPTIONS,
-  formatINR,
-  shortINR,
+  formatUSD,
+  shortUSD,
   type GameMode,
 } from "@/lib/game/config";
 import { ROOM_CODE_LENGTH } from "@/lib/game/rooms";
@@ -81,7 +81,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
           <dl className="mx-auto mt-6 grid max-w-sm grid-cols-2 gap-y-2.5 text-left text-[0.8125rem]">
             <dt className="text-ink-soft">Starting cash</dt>
             <dd className="t-value text-right text-ink">
-              {formatINR(config.startingCash)}
+              {formatUSD(config.startingCash)}
             </dd>
             <dt className="text-ink-soft">Companies</dt>
             <dd className="t-value text-right text-ink">{config.companies}</dd>
@@ -144,7 +144,7 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
                 active={config.startingCash === amount}
                 onClick={() => setConfig({ startingCash: amount })}
               >
-                {shortINR(amount)}
+                {shortUSD(amount)}
               </Chip>
             ))}
           </div>

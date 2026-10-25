@@ -5,7 +5,7 @@ import { toMessage } from "@/lib/supabase/errors";
 import { GameScreen } from "@/components/game/game-screen";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { shortINR } from "@/lib/game/config";
+import { shortUSD } from "@/lib/game/config";
 import {
   MAX_PLAYERS,
   MIN_PLAYERS,
@@ -306,7 +306,7 @@ export default function Lobby({
         <div>
           <div className="t-section">Cash</div>
           <div className="t-value mt-0.5 text-ink">
-            {shortINR(room.config.startingCash)}
+            {shortUSD(room.config.startingCash)}
           </div>
         </div>
         <div>

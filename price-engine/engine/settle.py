@@ -102,13 +102,13 @@ def default_companies() -> list[Company]:
     Volatilities are hand-set so the board has a spread of temperaments —
     something sleepy to park cash in, something that can ruin or make a
     round — rather than six instruments that all feel the same. Prices are in
-    paise. TUNE FREELY.
+    cents ($60–$100). TUNE FREELY.
     """
     return [
-        Company(ticker="TSLA", name="Tesla, Inc.", initial_price=240_000, volatility=0.065, drift=0.004),
-        Company(ticker="AAPL", name="Apple Inc.", initial_price=180_000, volatility=0.035, drift=0.003),
-        Company(ticker="AMZN", name="Amazon.com, Inc.", initial_price=165_000, volatility=0.045, drift=0.003),
-        Company(ticker="JPM", name="JPMorgan Chase & Co.", initial_price=200_000, volatility=0.025, drift=0.002),
-        Company(ticker="NFLX", name="Netflix, Inc.", initial_price=580_000, volatility=0.055, drift=0.002),
-        Company(ticker="CVS", name="CVS Health Corporation", initial_price=56_000, volatility=0.030, drift=0.001),
+        Company(ticker="TSLA", name="Tesla, Inc.", initial_price=9_500, volatility=0.065, drift=0.004),
+        Company(ticker="AAPL", name="Apple Inc.", initial_price=8_000, volatility=0.035, drift=0.003),
+        Company(ticker="AMZN", name="Amazon.com, Inc.", initial_price=7_200, volatility=0.045, drift=0.003),
+        Company(ticker="JPM", name="JPMorgan Chase & Co.", initial_price=8_800, volatility=0.025, drift=0.002),
+        Company(ticker="NFLX", name="Netflix, Inc.", initial_price=10_000, volatility=0.055, drift=0.002),
+        Company(ticker="CVS", name="CVS Health Corporation", initial_price=6_000, volatility=0.030, drift=0.001),
     ]

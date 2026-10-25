@@ -14,7 +14,7 @@ import {
   CASH_PRESETS,
   LIMITS,
   TIMER_OPTIONS,
-  shortINR,
+  shortUSD,
 } from "@/lib/game/config";
 import { useGameConfigStore } from "@/lib/stores/game-config-store";
 import { createClient } from "@/lib/supabase/client";
@@ -155,7 +155,7 @@ export default function SettingsForm({
                 active={s.default_starting_cash === amount}
                 onClick={() => patch({ default_starting_cash: amount })}
               >
-                {shortINR(amount)}
+                {shortUSD(amount)}
               </Chip>
             ))}
           </div>

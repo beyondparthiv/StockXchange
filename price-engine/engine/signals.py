@@ -41,18 +41,18 @@ FALSE_RATE = 0.15
 
 SIGNALS_PER_ROUND = 10
 
-#: Signals are rounded to a readable step so cards read "+₹14", not "+₹13.87".
-SIGNAL_STEP = 100  # ₹1
+#: Signals are rounded to a readable step so cards read "+$4", not "+$3.87".
+SIGNAL_STEP = 100  # $1
 
 
-def _round_to_step(paise: int) -> int:
-    if paise == 0:
+def _round_to_step(cents: int) -> int:
+    if cents == 0:
         return 0
-    stepped = int(round(paise / SIGNAL_STEP)) * SIGNAL_STEP
-    # Never round a non-zero hint down to zero — a "₹0" card tells nobody
+    stepped = int(round(cents / SIGNAL_STEP)) * SIGNAL_STEP
+    # Never round a non-zero hint down to zero — a "$0" card tells nobody
     # anything and wastes a slot.
     if stepped == 0:
-        stepped = SIGNAL_STEP if paise > 0 else -SIGNAL_STEP
+        stepped = SIGNAL_STEP if cents > 0 else -SIGNAL_STEP
     return stepped
 
 
@@ -63,7 +63,7 @@ def predict_true_moves(
     companies: list[Company],
     quotes: list[Quote],
 ) -> dict[str, int]:
-    """The move each company WILL make next round, in paise.
+    """The move each company WILL make next round, in cents.
 
     Drawn from the generator settlement will use for that round, so the hints
     below are distortions of a real future rather than of a guess.

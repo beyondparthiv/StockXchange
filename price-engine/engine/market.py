@@ -11,11 +11,11 @@ Each round, a company's return is
 
     r = drift + volatility * z          where z ~ N(0, 1), clipped to ±2.5
 
-and the new price is `price * (1 + r)`, rounded to whole paise and floored at
+and the new price is `price * (1 + r)`, rounded to whole cents and floored at
 MIN_PRICE so nothing can reach zero and become untradeable.
 
-Why multiplicative rather than additive: a flat "±₹10" move is a rounding
-error on a ₹6,000 stock and a catastrophe on a ₹60 one. Returns keep every
+Why multiplicative rather than additive: a flat "±$5" move is noise on a
+$100 stock and a third of a $15 one. Returns keep every
 company equally interesting regardless of its price, which is what you want
 when players are choosing between them.
 
@@ -31,7 +31,7 @@ from .rng import generator
 
 #: Floor price. A company at zero can never recover and is dead weight on the
 #: board for the rest of the game.
-MIN_PRICE = 100  # ₹1
+MIN_PRICE = 100  # $1
 
 #: Return clamp, in standard deviations.
 SIGMA_CLIP = 2.5

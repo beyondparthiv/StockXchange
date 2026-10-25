@@ -5,10 +5,10 @@ These mirror `src/lib/game/state.ts` on the web side — same field names, same
 units — so a settlement response can be handed to the UI with no translation
 layer in between. If you change a name here, change it there.
 
-Money is integer **paise** (1/100 rupee) everywhere. Floats drift once you
-start multiplying share counts by prices and summing P&L across twenty rounds,
-and a net worth that disagrees with itself is the kind of bug players notice
-and never forgive in a competitive game.
+Money is integer **cents** everywhere. Floats drift once you start
+multiplying share counts by prices and summing P&L across twenty rounds, and
+a net worth that disagrees with itself is the kind of bug players notice and
+never forgive in a competitive game.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-Paise = int
+Cents = int
 
 
 class Direction(str, Enum):
@@ -33,7 +33,7 @@ class Company(BaseModel):
 
     ticker: str
     name: str
-    initial_price: Paise
+    initial_price: Cents
     volatility: float = Field(default=0.045, ge=0.0, le=0.5)
     drift: float = Field(
         default=0.0,
@@ -45,9 +45,9 @@ class Company(BaseModel):
 
 class Quote(BaseModel):
     ticker: str
-    initial: Paise
-    last_round: Paise
-    current: Paise
+    initial: Cents
+    last_round: Cents
+    current: Cents
     frozen: bool = False
 
 
@@ -60,7 +60,7 @@ class MarketSignal(BaseModel):
 
     id: str
     ticker: str
-    delta: Paise
+    delta: Cents
 
 
 class NewsItem(BaseModel):
@@ -76,9 +76,9 @@ class NewsItem(BaseModel):
 
 class PriceChange(BaseModel):
     ticker: str
-    before: Paise
-    after: Paise
-    delta: Paise
+    before: Cents
+    after: Cents
+    delta: Cents
     percent: float
     direction: Direction
 

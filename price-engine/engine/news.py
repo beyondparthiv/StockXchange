@@ -141,7 +141,7 @@ def generate_news(
 ) -> list[NewsItem]:
     """Headlines for `day`, derived from each company's upcoming move.
 
-    `upcoming` maps ticker to the paise move the engine expects — normally
+    `upcoming` maps ticker to the cent move the engine expects — normally
     from `signals.predict_true_moves`, so news and signals describe the same
     future rather than contradicting each other by accident.
     """

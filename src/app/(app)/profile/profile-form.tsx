@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Alert } from "@/components/auth/auth-ui";
 import { createClient } from "@/lib/supabase/client";
-import { formatINR } from "@/lib/game/config";
+import { formatUSD } from "@/lib/game/config";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2 MB
 
@@ -95,7 +95,7 @@ export default function ProfileForm({
   const stats = [
     { label: "Games played", value: "0" },
     { label: "Win rate", value: "0%" },
-    { label: "Best net worth", value: formatINR(0) },
+    { label: "Best net worth", value: formatUSD(0) },
   ];
 
   return (
