@@ -15,6 +15,8 @@ import {
   Wallet,
 } from "@/components/game/panels";
 import { mockGameState, type Seat } from "@/lib/game/mock";
+import { applyOrder } from "@/lib/game/orders";
+import { botOrdersForRound } from "@/lib/game/bots";
 import type { GameConfig } from "@/lib/game/config";
 import type { GameState, TradeSide } from "@/lib/game/state";
 
@@ -62,75 +64,19 @@ export function GameScreen({
   }, []);
 
   /**
-   * Placeholder order handling. It moves cash and shares so the panels update
-   * and can be reviewed — it is NOT settlement. Real orders go to the engine,
-   * which decides fills, applies card effects, and settles at round end.
+   * Submit an order for the viewing player.
+   *
+   * Goes through `applyOrder`, the same path bots use, so the rules are
+   * enforced in one place. This is not settlement — prices are decided by
+   * the engine at round end.
    */
   const submitOrder = useCallback(
     (side: TradeSide, ticker: string, qty: number) => {
       setState((prev) => {
-        const price =
-          prev.quotes.find((q) => q.ticker === ticker)?.current ?? 0;
-        const cost = price * qty;
-
-        const players = prev.players.map((p) => {
-          if (p.id !== prev.meId) return p;
-          const existing = p.holdings.find((h) => h.ticker === ticker);
-
-          if (side === "buy") {
-            const shares = (existing?.shares ?? 0) + qty;
-            const avgCost = existing
-              ? Math.round(
-                  (existing.avgCost * existing.shares + cost) / shares,
-                )
-              : price;
-            return {
-              ...p,
-              cash: p.cash - cost,
-              actedThisRound: true,
-              holdings: existing
-                ? p.holdings.map((h) =>
-                    h.ticker === ticker ? { ...h, shares, avgCost } : h,
-                  )
-                : [...p.holdings, { ticker, shares: qty, avgCost: price }],
-            };
-          }
-
-          const shares = (existing?.shares ?? 0) - qty;
-          return {
-            ...p,
-            cash: p.cash + cost,
-            actedThisRound: true,
-            holdings: p.holdings
-              .map((h) => (h.ticker === ticker ? { ...h, shares } : h))
-              .filter((h) => h.shares > 0),
-          };
-        });
-
-        const meName =
-          prev.players.find((p) => p.id === prev.meId)?.displayName ?? "You";
-
-        return {
-          ...prev,
-          players,
-          activity: [
-            {
-              id: `local-${Date.now()}`,
-              playerId: prev.meId,
-              playerName: meName,
-              side,
-              ticker,
-              shares: qty,
-              price,
-              day: prev.day,
-              round: prev.round,
-              at: new Date().toISOString(),
-            },
-            ...prev.activity,
-          ],
-        };
+        const res = applyOrder(prev, prev.meId, side, ticker, qty);
+        if (!res.filled) return prev;
+        return res.state;
       });
-
       pushToast(
         `You ${side === "buy" ? "bought" : "sold"} ${qty} ${ticker}`,
         side,
@@ -138,6 +84,72 @@ export function GameScreen({
     },
     [pushToast],
   );
+
+  /**
+   * Bots trade during the order window, staggered rather than all at once —
+   * four simultaneous toasts read as a glitch, four arriving over a few
+   * seconds read as opponents thinking.
+   *
+   * They act through `applyOrder` too, so a bot cannot overspend or sell
+   * shares it does not hold.
+   */
+  useEffect(() => {
+    if (state.phase !== "trading") return;
+    const bots = state.players.filter((p) => p.isBot && !p.actedThisRound);
+    if (bots.length === 0) return;
+
+    const timers = bots.map((_, i) =>
+      setTimeout(
+        () => {
+          setState((prev) => {
+            if (prev.phase !== "trading") return prev;
+            const pending = botOrdersForRound(prev).filter(
+              (o) => !prev.players.find((p) => p.id === o.playerId)?.actedThisRound,
+            );
+            const order = pending[0];
+            if (!order) {
+              // No conviction this round — mark it as a pass so the round can
+              // still close and the leaderboard tick is honest.
+              const next = bots[i];
+              return next
+                ? {
+                    ...prev,
+                    players: prev.players.map((p) =>
+                      p.id === next.id ? { ...p, actedThisRound: true } : p,
+                    ),
+                  }
+                : prev;
+            }
+            const res = applyOrder(
+              prev,
+              order.playerId,
+              order.side,
+              order.ticker,
+              order.qty,
+            );
+            if (res.filled) {
+              pushToast(
+                `${res.filled.playerName} ${order.side === "buy" ? "bought" : "sold"} ${order.qty} ${order.ticker}`,
+                order.side,
+              );
+              return res.state;
+            }
+            return {
+              ...prev,
+              players: prev.players.map((p) =>
+                p.id === order.playerId ? { ...p, actedThisRound: true } : p,
+              ),
+            };
+          });
+        },
+        1500 + i * 2200 + Math.random() * 900,
+      ),
+    );
+
+    return () => timers.forEach(clearTimeout);
+    // Re-runs when a new round opens; bots act once per round.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.day, state.round, state.phase]);
 
   const playSpecial = useCallback((id: string) => {
     setState((prev) => ({

@@ -102,15 +102,15 @@ export const MODE_META: Record<GameMode, ModeMeta> = {
     tagline: "Offline · AI opponents",
     description:
       "Trade against AI opponents of varying difficulty — no other players needed.",
-    nextStep: "Bot opponents arrive in Phase 8; the game screen in Phase 5.",
-    available: false,
+    nextStep: "Starts immediately — no room, no waiting.",
+    available: true,
   },
   solo: {
     label: "Practice Solo",
     tagline: "Offline · No opponents",
     description:
       "Learn the mechanics at your own pace with the market but no rivals.",
-    nextStep: "The playable game screen arrives in Phase 5.",
-    available: false,
+    nextStep: "Starts immediately — the market, with nobody to beat.",
+    available: true,
   },
 };

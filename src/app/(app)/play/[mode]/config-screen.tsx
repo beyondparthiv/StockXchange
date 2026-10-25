@@ -102,10 +102,10 @@ export default function ConfigScreen({ mode }: { mode: GameMode }) {
               Change settings
             </button>
             <Link
-              href="/"
+              href={`/play/${mode}/game`}
               className="cta rounded-md bg-accent px-4 py-2 text-[0.8125rem] font-medium text-white hover:bg-accent-hover"
             >
-              Back to modes
+              Enter the market
             </Link>
           </div>
         </div>
