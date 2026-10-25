@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { COMPANIES } from "@/lib/brand/companies";
 
 /**
@@ -90,6 +93,12 @@ function Tape({ reverse = false }: { reverse?: boolean }) {
 }
 
 export function MarketBackdrop() {
+  const pathname = usePathname();
+  // The two routes that render the board.
+  const onBoard =
+    pathname?.startsWith("/room/") || /^\/play\/[^/]+\/game/.test(pathname ?? "");
+  if (onBoard) return null;
+
   return (
     <div className="market-backdrop" aria-hidden="true">
       {/* 1 — graph paper, drifting slowly upward */}

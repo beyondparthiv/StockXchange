@@ -17,7 +17,7 @@ import {
 import { mockGameState, type Seat } from "@/lib/game/mock";
 import { applyOrder } from "@/lib/game/orders";
 import { dealSpecials, specialInfo } from "@/lib/game/specials";
-import { botOrdersForRound } from "@/lib/game/bots";
+import { botOrder } from "@/lib/game/bots";
 import type { GameConfig } from "@/lib/game/config";
 import type { GameState, TradeSide } from "@/lib/game/state";
 
@@ -58,6 +58,18 @@ export function GameScreen({
    * nothing random happens while rendering, and nothing re-renders to
    * publish it.
    */
+  /*
+   * Which bots have already acted, keyed "day-round-botId".
+   *
+   * The timers alone were not enough: a bot's trade was occasionally
+   * applied and announced twice (two identical toasts on screen at once).
+   * Rather than keep guessing at which re-entry caused it — a StrictMode
+   * double-invoke, a re-render racing a pending write — this makes a second
+   * execution impossible by construction. A ref, not state, because it must
+   * be consulted and updated synchronously inside the state updater.
+   */
+  const botActedRef = useRef<Set<string>>(new Set());
+
   const gameIdRef = useRef<string | null>(null);
   const ensureGameId = useCallback(() => {
     gameIdRef.current ??= `g-${Date.now().toString(36)}-${Math.random()
@@ -100,11 +112,12 @@ export function GameScreen({
   // The board owns the viewport. Locking body scroll stops a stray pixel of
   // overflow (or a browser's scroll-anchoring) from introducing a scrollbar
   // that shifts the whole table sideways mid-round.
+
   useEffect(() => {
-    const prev = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevOverflow;
     };
   }, []);
 
@@ -150,28 +163,38 @@ export function GameScreen({
     const bots = state.players.filter((p) => p.isBot && !p.actedThisRound);
     if (bots.length === 0) return;
 
-    const timers = bots.map((_, i) =>
+    /*
+     * One timer per bot, each handling THAT bot and no other.
+     *
+     * The first version re-derived a list of pending orders inside every
+     * timer and took the first one. Two timers firing before the first
+     * state write committed both picked the same bot, so the same trade was
+     * applied and announced twice. Binding the bot to its own timer makes
+     * that impossible.
+     */
+    const timers = bots.map((bot, i) =>
       setTimeout(
         () => {
           setState((prev) => {
             if (prev.phase !== "trading") return prev;
-            const pending = botOrdersForRound(prev).filter(
-              (o) => !prev.players.find((p) => p.id === o.playerId)?.actedThisRound,
-            );
-            const order = pending[0];
+            const once = `${prev.day}-${prev.round}-${bot.id}`;
+            if (botActedRef.current.has(once)) return prev;
+            const live = prev.players.find((p) => p.id === bot.id);
+            if (!live || live.actedThisRound) return prev;
+            botActedRef.current.add(once);
+
+            const order = botOrder(prev, live);
             if (!order) {
-              // No conviction this round — mark it as a pass so the round can
-              // still close and the leaderboard tick is honest.
-              const next = bots[i];
-              return next
-                ? {
-                    ...prev,
-                    players: prev.players.map((p) =>
-                      p.id === next.id ? { ...p, actedThisRound: true } : p,
-                    ),
-                  }
-                : prev;
+              // No conviction — record a pass so the leaderboard tick is
+              // honest rather than leaving the bot looking undecided.
+              return {
+                ...prev,
+                players: prev.players.map((p) =>
+                  p.id === bot.id ? { ...p, actedThisRound: true } : p,
+                ),
+              };
             }
+
             const res = applyOrder(
               prev,
               order.playerId,
@@ -189,12 +212,12 @@ export function GameScreen({
             return {
               ...prev,
               players: prev.players.map((p) =>
-                p.id === order.playerId ? { ...p, actedThisRound: true } : p,
+                p.id === bot.id ? { ...p, actedThisRound: true } : p,
               ),
             };
           });
         },
-        1500 + i * 2200 + Math.random() * 900,
+        1500 + i * 2200,
       ),
     );
 

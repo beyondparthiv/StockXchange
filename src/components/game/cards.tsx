@@ -33,7 +33,7 @@ function SignalCard({ signal }: { signal: MarketSignal }) {
 
   return (
     <div
-      className={`flex flex-col justify-between rounded-md border p-2.5 ${tone}`}
+      className={`flex flex-col justify-center gap-1.5 rounded-md border p-2.5 ${tone}`}
     >
       <div className="flex items-center gap-1.5">
         {company && <CompanyLogo company={company} size={16} />}
@@ -43,16 +43,13 @@ function SignalCard({ signal }: { signal: MarketSignal }) {
       </div>
 
       <div
-        className={`mt-2 font-mono text-base font-semibold tabular-nums ${
+        className={`font-mono text-base font-semibold tabular-nums ${
           up ? "text-up" : signal.delta < 0 ? "text-down" : "text-ink-faint"
         }`}
       >
         {formatSigned(signal.delta)}
       </div>
 
-      <div className="mt-1.5 text-[0.5625rem] font-semibold uppercase tracking-wider text-ink-faint">
-        Market signal
-      </div>
     </div>
   );
 }
@@ -102,12 +99,16 @@ export function CardGrid({
 }) {
   return (
     <section>
-      <div className="mb-2.5 flex items-baseline justify-between">
-        <h2 className="t-section">Intelligence</h2>
-        <span className="text-[0.625rem] text-ink-faint">
-          Signals are information — you decide what to do with them
-        </span>
-      </div>
+      {/*
+        The explainer that used to sit here permanently is now the section
+        title's tooltip. It is read once and then it is clutter.
+      */}
+      <h2
+        className="t-section mb-2"
+        title="Signals are information, not actions — read them and decide whether to buy, sell or pass"
+      >
+        Intelligence
+      </h2>
 
       <div className="grid grid-cols-6 gap-2">
         {/* Columns 1–5: ten signals, two rows. */}

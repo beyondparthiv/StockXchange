@@ -152,17 +152,27 @@ def generate_news(
         return []
 
     items: list[NewsItem] = []
+    #: (ticker, headline) pairs already used today. Without this the same
+    #: company can draw the same template twice and the feed shows one
+    #: headline twice in three lines, which reads as a bug.
+    used: set[tuple[str | None, str]] = set()
 
     for i in range(count):
         # Roughly one item in four is market-wide, which gives the feed some
         # texture and stops it reading as six per-company tickers in a row.
         if float(rng.random()) < 0.25:
+            headline = str(rng.choice(MARKET_WIDE))
+            for _ in range(4):
+                if (None, headline) not in used:
+                    break
+                headline = str(rng.choice(MARKET_WIDE))
+            used.add((None, headline))
             items.append(
                 NewsItem(
                     id=f"{game_id}-d{day}-n{i}",
                     day=day,
                     ticker=None,
-                    headline=str(rng.choice(MARKET_WIDE)),
+                    headline=headline,
                     truthful=True,
                 )
             )
@@ -179,6 +189,13 @@ def generate_news(
 
         bank = POSITIVE if says_up else NEGATIVE
         template = str(rng.choice(_bank(bank, ticker)))
+        # Re-draw a few times rather than loop forever; the banks are small
+        # and a rare repeat is better than a hang.
+        for _ in range(4):
+            if (ticker, template) not in used:
+                break
+            template = str(rng.choice(_bank(bank, ticker)))
+        used.add((ticker, template))
 
         items.append(
             NewsItem(

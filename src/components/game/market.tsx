@@ -108,28 +108,25 @@ export function StockTile({
         <span className={`t-value ${tone}`}>{formatPercent(move.percent)}</span>
       </div>
 
-      <dl className="relative mt-3 grid grid-cols-3 gap-1 border-t border-line pt-2.5">
-        {(
-          [
-            ["Init", quote.initial],
-            ["Last", quote.lastRound],
-            ["Now", quote.current],
-          ] as const
-        ).map(([label, value], i) => (
-          <div key={label}>
-            <dt className="text-[0.5625rem] font-semibold uppercase tracking-wider text-ink-faint">
-              {label}
-            </dt>
-            <dd
-              className={`font-mono text-[0.6875rem] tabular-nums ${
-                i === 2 ? "text-ink" : "text-ink-soft"
-              }`}
-            >
-              {formatMoney(value)}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      {/*
+        Init and Last only. The third column used to be "Now", which simply
+        repeated the large price directly above it — three labels and three
+        numbers per tile, one of them redundant, on six tiles at once.
+      */}
+      <div className="relative mt-2.5 flex gap-4 border-t border-line pt-2 text-[0.625rem] text-ink-faint">
+        <span>
+          Init{" "}
+          <span className="font-mono tabular-nums text-ink-soft">
+            {formatMoney(quote.initial)}
+          </span>
+        </span>
+        <span>
+          Last{" "}
+          <span className="font-mono tabular-nums text-ink-soft">
+            {formatMoney(quote.lastRound)}
+          </span>
+        </span>
+      </div>
     </button>
   );
 }
