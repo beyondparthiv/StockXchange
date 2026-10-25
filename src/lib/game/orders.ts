@@ -11,6 +11,7 @@
  */
 
 import {
+  canTrade,
   maxAffordable,
   priceOf,
   sharesHeld,
@@ -39,7 +40,15 @@ export function applyOrder(
   if (!player || !quote) return { state, filled: null, rejected: "Unknown player or ticker" };
   if (qty < 1) return { state, filled: null, rejected: "Quantity must be at least 1" };
   if (quote.frozen) return { state, filled: null, rejected: `${ticker} is frozen` };
-  if (state.phase !== "trading") return { state, filled: null, rejected: "Trading is closed" };
+  if (!canTrade(state.phase)) {
+    return { state, filled: null, rejected: "Trading is closed" };
+  }
+  // One action per round — an order or a pass. A round is meant to be a
+  // decision, not a shopping trip, so the second order is refused rather
+  // than silently queued.
+  if (player.actedThisRound) {
+    return { state, filled: null, rejected: "You have already acted this round" };
+  }
 
   const price = priceOf(state, ticker);
   const cost = price * qty;

@@ -3,7 +3,7 @@
 import { getCompany } from "@/lib/brand/companies";
 import { CompanyLogo } from "@/components/brand/company-logo";
 import { formatSigned, type MarketSignal, type SpecialCard } from "@/lib/game/state";
-import { specialInfo } from "@/lib/game/specials";
+import { playableNow, specialInfo } from "@/lib/game/specials";
 
 /**
  * The card grid: six columns. Columns 1–5 hold ten market signals in two rows;
@@ -57,22 +57,36 @@ function SignalCard({ signal }: { signal: MarketSignal }) {
 function SpecialCardTile({
   card,
   onPlay,
+  phase,
 }: {
   card: SpecialCard;
   onPlay: (id: string) => void;
+  phase: string;
 }) {
+  const info = specialInfo(card.key);
+  const open = playableNow(card.key, phase);
   return (
     <button
       type="button"
-      disabled={card.used}
+      disabled={card.used || !open}
       onClick={() => onPlay(card.id)}
       title={`${card.effect}
 
-${specialInfo(card.key).action}`}
+${info.action}
+
+Playable: ${
+        info.window === "pre"
+          ? "in the cards window before a round"
+          : info.window === "post"
+            ? "in the special round after closing prices"
+            : "in either card window"
+      }`}
       className={`interactive flex w-full flex-1 flex-col justify-between rounded-md border border-dashed p-2.5 text-left ${
         card.used
           ? "border-line bg-surface-2 opacity-50"
-          : "border-accent/50 bg-accent-soft hover:border-accent"
+          : open
+            ? "border-accent/50 bg-accent-soft hover:border-accent"
+            : "border-line bg-surface-2 opacity-60"
       }`}
     >
       <div className="text-[0.5625rem] font-semibold uppercase tracking-wider text-accent">
@@ -82,7 +96,13 @@ ${specialInfo(card.key).action}`}
         {card.name}
       </div>
       <div className="mt-1.5 text-[0.5625rem] font-medium uppercase tracking-wider text-ink-faint">
-        {card.used ? "Used" : "Tap to play"}
+        {card.used
+          ? "Used"
+          : open
+            ? "Tap to play"
+            : info.window === "pre"
+              ? "Pre-round"
+              : "Special round"}
       </div>
     </button>
   );
@@ -92,10 +112,12 @@ export function CardGrid({
   signals,
   specials,
   onPlaySpecial,
+  phase,
 }: {
   signals: MarketSignal[];
   specials: SpecialCard[];
   onPlaySpecial: (id: string) => void;
+  phase: string;
 }) {
   return (
     <section>
@@ -121,7 +143,7 @@ export function CardGrid({
         {/* Column 6: the two playable specials, same total height. */}
         <div className="col-span-1 flex flex-col gap-2">
           {specials.slice(0, 2).map((c) => (
-            <SpecialCardTile key={c.id} card={c} onPlay={onPlaySpecial} />
+            <SpecialCardTile key={c.id} card={c} onPlay={onPlaySpecial} phase={phase} />
           ))}
         </div>
       </div>

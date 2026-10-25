@@ -16,7 +16,7 @@ import {
 } from "@/components/game/panels";
 import { mockGameState, type Seat } from "@/lib/game/mock";
 import { applyOrder } from "@/lib/game/orders";
-import { dealSpecials, specialInfo } from "@/lib/game/specials";
+import { dealSpecials, playableNow, specialInfo } from "@/lib/game/specials";
 import { botOrder } from "@/lib/game/bots";
 import type { GameConfig } from "@/lib/game/config";
 import type { GameState, TradeSide } from "@/lib/game/state";
@@ -34,6 +34,11 @@ import type { GameState, TradeSide } from "@/lib/game/state";
  */
 
 type Toast = { id: number; text: string; side: TradeSide };
+
+/** Cards window before each round opens. */
+const PRE_ROUND_SECONDS = 15;
+/** Cards window after the day's closing prices. */
+const SPECIAL_ROUND_SECONDS = 30;
 
 export function GameScreen({
   seats,
@@ -92,10 +97,9 @@ export function GameScreen({
   // Double Trade: lets the next order exceed the affordable maximum.
   const [doubleTrade, setDoubleTrade] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [transition, setTransition] = useState<{
-    title: string;
-    sub: string;
-  } | null>(null);
+  const [banner, setBanner] = useState<{ title: string; sub: string } | null>(
+    null,
+  );
   const [engineDown, setEngineDown] = useState<string | null>(null);
 
   // Settlement needs the CURRENT quotes, but the round effect is keyed on
@@ -120,6 +124,118 @@ export function GameScreen({
       document.body.style.overflow = prevOverflow;
     };
   }, []);
+
+  /**
+   * Close a round through the engine and open the next one's cards.
+   *
+   * Falls back to moving prices by the signal they advertised when the
+   * engine is unreachable: a stopped engine should degrade the game rather
+   * than freeze it mid-session.
+   */
+  const settleRound = useCallback(
+    async (gameId: string, day: number, round: number, roundsPerDay: number) => {
+      setState((prev) => ({ ...prev, phase: "settling", secondsLeft: null }));
+
+      type EngineQuote = {
+        ticker: string;
+        initial: number;
+        last_round: number;
+        current: number;
+        frozen: boolean;
+      };
+      let settled: {
+        quotes?: EngineQuote[];
+        next_signals?: { id: string; ticker: string; delta: number }[];
+        news?: {
+          id: string;
+          day: number;
+          ticker: string | null;
+          headline: string;
+          body?: string;
+        }[];
+      } | null = null;
+
+      try {
+        const res = await fetch("/api/game/settle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "settle",
+            gameId,
+            day,
+            round,
+            roundsPerDay,
+            quotes: stateRef.current.quotes.map((q) => ({
+              ticker: q.ticker,
+              initial: q.initial,
+              last_round: q.lastRound,
+              current: q.current,
+              frozen: q.frozen,
+            })),
+          }),
+        });
+        const data = await res.json();
+        if (data.ok) settled = data;
+        else setEngineDown(data.error ?? "Price engine unavailable");
+      } catch (e) {
+        setEngineDown(
+          e instanceof Error ? e.message : "Price engine unavailable",
+        );
+      }
+
+      setState((prev) => {
+        if (settled?.quotes) {
+          setEngineDown(null);
+          const fresh = settled.next_signals ?? [];
+          const incoming = settled.news ?? [];
+          return {
+            ...prev,
+            quotes: settled.quotes.map((q) => ({
+              ticker: q.ticker,
+              initial: q.initial,
+              lastRound: q.last_round,
+              current: q.current,
+              frozen: q.frozen,
+            })),
+            signals:
+              fresh.length > 0
+                ? fresh.map((sg) => ({
+                    id: sg.id,
+                    ticker: sg.ticker,
+                    delta: sg.delta,
+                  }))
+                : prev.signals,
+            news:
+              incoming.length > 0
+                ? [
+                    ...incoming.map((n) => ({
+                      id: n.id,
+                      day: n.day,
+                      ticker: n.ticker,
+                      headline: n.headline,
+                      body: n.body,
+                    })),
+                    ...prev.news,
+                  ].slice(0, 12)
+                : prev.news,
+          };
+        }
+        return {
+          ...prev,
+          quotes: prev.quotes.map((q) => {
+            if (q.frozen) return { ...q, lastRound: q.current };
+            const sg = prev.signals.find((x) => x.ticker === q.ticker);
+            return {
+              ...q,
+              lastRound: q.current,
+              current: Math.max(100, q.current + (sg?.delta ?? 0)),
+            };
+          }),
+        };
+      });
+    },
+    [],
+  );
 
   const pushToast = useCallback((text: string, side: TradeSide) => {
     const id = Date.now() + Math.random();
@@ -242,6 +358,15 @@ export function GameScreen({
 
       if (!info.implemented) {
         pushToast(`${info.name} is not available yet`, "sell");
+        return;
+      }
+      if (!playableNow(card.key, stateRef.current.phase)) {
+        pushToast(
+          info.window === "pre"
+            ? `${info.name} is a pre-round card`
+            : `${info.name} is a special-round card`,
+          "sell",
+        );
         return;
       }
 
@@ -464,25 +589,21 @@ export function GameScreen({
   }, [ensureGameId]);
 
   /*
-   * Round loop.
+   * The day cycle.
    *
-   * The clock runs here; settlement comes from the price engine via
-   * /api/game/settle. The engine decides the new prices, deals the signal
-   * cards for the round about to open, and generates news on day boundaries
-   * -- so each round brings fresh intelligence and each new day brings fresh
-   * headlines, and the cards genuinely predict the move because the engine
-   * derives them from the same draw it settles with.
+   *   pre-round (15s)  cards that inform the round ahead
+   *   trading          the order window, one action
+   *   settle           engine closes the round
+   *   round 2          same again
+   *   day-prices       the day's closing prices, held to be read
+   *   special-round    30s for cards that act on known prices
+   *   next day
    *
-   * If the engine is unreachable the round still advances on a local
-   * fallback, because a stopped engine should degrade the game rather than
-   * freeze it mid-session.
-   *
-   * Keyed on day+round, NOT on secondsLeft or phase. The sequence writes
-   * state as it runs; if those writes changed this effect's dependencies
-   * React would tear it down mid-flight and cancel the pending timeouts --
-   * which is exactly what stopped the transition from ever appearing. Day
-   * and round hold still until the final step, and changing them there is
-   * what starts the next round.
+   * Driven by one effect keyed on day+round. The sequence writes state as it
+   * runs, and if those writes changed the dependencies React would tear the
+   * effect down mid-flight and cancel the pending steps — which is exactly
+   * what stopped the round transition firing in an earlier version. Day and
+   * round hold still until the final step.
    */
   useEffect(() => {
     if (state.phase === "finished") return;
@@ -490,186 +611,137 @@ export function GameScreen({
 
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
+    const at = (ms: number, fn: () => void) => {
+      timers.push(setTimeout(() => !cancelled && fn(), ms));
+    };
+
     const day = state.day;
     const round = state.round;
     const roundsPerDay = state.roundsPerDay;
     const lastRoundOfDay = round >= roundsPerDay;
     const lastDay = day >= state.config.days;
+    const tradeMs = state.config.roundTimerSec * 1000;
 
+    // One ticking clock for whichever window is open.
     const tick = setInterval(() => {
       setState((prev) => {
-        if (prev.phase !== "trading" || prev.secondsLeft === null) return prev;
+        if (prev.secondsLeft === null) return prev;
+        if (!["pre-round", "trading", "special-round"].includes(prev.phase)) {
+          return prev;
+        }
         return { ...prev, secondsLeft: Math.max(0, prev.secondsLeft - 1) };
       });
     }, 1000);
 
-    const windowMs = (state.secondsLeft ?? state.config.roundTimerSec) * 1000;
+    // ---- 1. Cards window -------------------------------------------------
+    setState((prev) => ({
+      ...prev,
+      phase: "pre-round",
+      secondsLeft: PRE_ROUND_SECONDS,
+    }));
+    setBanner({
+      title: `Day ${day} · Round ${round}`,
+      sub: "Cards open — play anything that informs this round",
+    });
+    at(2000, () => setBanner(null));
 
-    async function settleRound() {
+    // ---- 2. Trading ------------------------------------------------------
+    at(PRE_ROUND_SECONDS * 1000, () => {
+      setState((prev) => ({
+        ...prev,
+        phase: "trading",
+        secondsLeft: prev.config.roundTimerSec,
+      }));
+      setBanner({ title: "Trading open", sub: "One action this round" });
+      at(1600, () => setBanner(null));
+    });
+
+    const tradeEnds = PRE_ROUND_SECONDS * 1000 + tradeMs;
+
+    // ---- 3. Settle -------------------------------------------------------
+    at(tradeEnds, () => {
       clearInterval(tick);
-      if (cancelled) return;
+      void settleRound(gameId, day, round, roundsPerDay);
+    });
 
-      setState((prev) => ({ ...prev, phase: "settling", secondsLeft: null }));
-
-      type EngineQuote = {
-        ticker: string;
-        initial: number;
-        last_round: number;
-        current: number;
-        frozen: boolean;
-      };
-      type EngineReply = {
-        quotes?: EngineQuote[];
-        next_signals?: { id: string; ticker: string; delta: number }[];
-        news?: {
-          id: string;
-          day: number;
-          ticker: string | null;
-          headline: string;
-          body?: string;
-        }[];
-      };
-
-      let settled: EngineReply | null = null;
-
-      try {
-        const res = await fetch("/api/game/settle", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "settle",
-            gameId,
-            day,
-            round,
-            roundsPerDay,
-            quotes: stateRef.current.quotes.map((q) => ({
-              ticker: q.ticker,
-              initial: q.initial,
-              last_round: q.lastRound,
-              current: q.current,
-              frozen: q.frozen,
-            })),
-          }),
+    // ---- 4. Round boundary, or the day's close ---------------------------
+    if (!lastRoundOfDay) {
+      at(tradeEnds + 1400, () => {
+        setState((prev) => ({ ...prev, phase: "round-complete" }));
+        setBanner({
+          title: `Round ${round} complete`,
+          sub: `Round ${round + 1} starting`,
         });
-        const data = await res.json();
-        if (data.ok) settled = data as EngineReply;
-        else setEngineDown(data.error ?? "Price engine unavailable");
-      } catch (e) {
-        setEngineDown(
-          e instanceof Error ? e.message : "Price engine unavailable",
-        );
-      }
-
-      if (cancelled) return;
-
-      setState((prev) => {
-        if (settled?.quotes) {
-          setEngineDown(null);
-          const fresh = settled.next_signals ?? [];
-          const incoming = settled.news ?? [];
-          return {
-            ...prev,
-            quotes: settled.quotes.map((q) => ({
-              ticker: q.ticker,
-              initial: q.initial,
-              lastRound: q.last_round,
-              current: q.current,
-              frozen: q.frozen,
-            })),
-            // Fresh intelligence for the round about to open.
-            signals:
-              fresh.length > 0
-                ? fresh.map((sg) => ({
-                    id: sg.id,
-                    ticker: sg.ticker,
-                    delta: sg.delta,
-                  }))
-                : prev.signals,
-            // News only arrives on a day boundary; keep the feed otherwise.
-            news:
-              incoming.length > 0
-                ? [
-                    ...incoming.map((n) => ({
-                      id: n.id,
-                      day: n.day,
-                      ticker: n.ticker,
-                      headline: n.headline,
-                      body: n.body,
-                    })),
-                    ...prev.news,
-                  ].slice(0, 12)
-                : prev.news,
-          };
-        }
-
-        // Fallback: move prices by the signal they advertised, so the board
-        // keeps running even with the engine down.
-        return {
-          ...prev,
-          quotes: prev.quotes.map((q) => {
-            if (q.frozen) return { ...q, lastRound: q.current };
-            const sg = prev.signals.find((x) => x.ticker === q.ticker);
-            return {
-              ...q,
-              lastRound: q.current,
-              current: Math.max(100, q.current + (sg?.delta ?? 0)),
-            };
-          }),
-        };
       });
-    }
-
-    timers.push(setTimeout(() => void settleRound(), windowMs));
-
-    timers.push(
-      setTimeout(() => {
-        if (cancelled) return;
-        setTransition(
-          lastRoundOfDay
-            ? {
-                title: `Day ${day} complete`,
-                sub: lastDay ? "Final results" : `Day ${day + 1} starting`,
-              }
-            : {
-                title: `Round ${round} complete`,
-                sub: `Round ${round + 1} starting`,
-              },
-        );
+      at(tradeEnds + 3600, () => {
+        setBanner(null);
         setState((prev) => ({
           ...prev,
-          phase: lastRoundOfDay ? "day-complete" : "round-complete",
+          round: prev.round + 1,
+          players: prev.players.map((pl) => ({ ...pl, actedThisRound: false })),
         }));
-      }, windowMs + 1400),
-    );
+      });
+    } else {
+      // Closing prices, held on screen long enough to actually read.
+      at(tradeEnds + 1400, () => {
+        setState((prev) => ({ ...prev, phase: "day-prices", secondsLeft: null }));
+        setBanner({
+          title: `Day ${day} closed`,
+          sub: "Closing prices",
+        });
+      });
+      at(tradeEnds + 4600, () => {
+        setBanner(null);
+        setState((prev) => ({
+          ...prev,
+          phase: "special-round",
+          secondsLeft: SPECIAL_ROUND_SECONDS,
+        }));
+        setBanner({
+          title: "Special round",
+          sub: "Play cards that act on the closing prices",
+        });
+        at(2000, () => setBanner(null));
+      });
 
-    timers.push(
-      setTimeout(() => {
-        if (cancelled) return;
-        setTransition(null);
-        setState((prev) =>
-          lastDay && lastRoundOfDay
-            ? { ...prev, phase: "finished", secondsLeft: null }
-            : {
-                ...prev,
-                phase: "trading",
-                day: lastRoundOfDay ? prev.day + 1 : prev.day,
-                round: lastRoundOfDay ? 1 : prev.round + 1,
-                secondsLeft: prev.config.roundTimerSec,
-                players: prev.players.map((pl) => ({
-                  ...pl,
-                  actedThisRound: false,
-                })),
-              },
-        );
-      }, windowMs + 3600),
-    );
+      const specialEnds = tradeEnds + 4600 + SPECIAL_ROUND_SECONDS * 1000;
+
+      at(specialEnds, () => {
+        if (lastDay) {
+          setBanner({ title: "Game over", sub: "Final standings" });
+          setState((prev) => ({
+            ...prev,
+            phase: "finished",
+            secondsLeft: null,
+          }));
+          return;
+        }
+        setState((prev) => ({ ...prev, phase: "day-complete" }));
+        setBanner({ title: `Day ${day} complete`, sub: `Day ${day + 1} starting` });
+      });
+
+      if (!lastDay) {
+        at(specialEnds + 2400, () => {
+          setBanner(null);
+          setState((prev) => ({
+            ...prev,
+            day: prev.day + 1,
+            round: 1,
+            players: prev.players.map((pl) => ({
+              ...pl,
+              actedThisRound: false,
+            })),
+          }));
+        });
+      }
+    }
 
     return () => {
       cancelled = true;
       clearInterval(tick);
       timers.forEach(clearTimeout);
     };
-    // Intentionally keyed on the round only -- see the note above.
+    // Intentionally keyed on the round only — see the note above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.day, state.round]);
 
@@ -680,7 +752,7 @@ export function GameScreen({
         onOpenHistory={() => setHistoryOpen(true)}
         activityCount={state.activity.length}
       />
-      <PhaseTransition transition={transition} />
+      <PhaseTransition transition={banner} />
 
       {engineDown && (
         <div className="animate-fade-in border-b border-warn/30 bg-warn/10 px-6 py-1 text-center text-[0.6875rem] font-medium text-warn">
@@ -730,6 +802,7 @@ export function GameScreen({
               signals={state.signals}
               specials={state.specials}
               onPlaySpecial={playSpecial}
+              phase={state.phase}
             />
           </div>
 

@@ -23,6 +23,17 @@ export type SpecialKey =
   | "tax_dodge"
   | "freeze_rival";
 
+/**
+ * When a card may be played.
+ *
+ *   "pre"   the 15s window before the round opens — cards that inform the
+ *           decision you are about to make.
+ *   "post"  the 30s special round after the day's closing prices — cards
+ *           that only make sense once the prices are known.
+ *   "both"  either window.
+ */
+export type SpecialWindow = "pre" | "post" | "both";
+
 type SpecialSpec = {
   key: SpecialKey;
   implemented: boolean;
@@ -30,22 +41,30 @@ type SpecialSpec = {
   blockedBy?: string;
   /** One line telling the player what pressing it will do. */
   action: string;
+  window: SpecialWindow;
 };
 
 export const SPECIAL_SPECS: Record<SpecialKey, SpecialSpec> = {
   insider_tip: {
     key: "insider_tip",
     implemented: true,
+    // Before the round: it tells you where a company is heading, which is
+    // only worth anything while you can still act on it.
+    window: "pre",
     action: "Reveal the true direction of one company's next move",
   },
   double_trade: {
     key: "double_trade",
     implemented: true,
+    window: "pre",
     action: "Your next order may exceed the affordable maximum by 2×",
   },
   rewind_trade: {
     key: "rewind_trade",
     implemented: true,
+    // After the day's prices land: this is the card you reach for once you
+    // can see the trade went against you.
+    window: "post",
     action: "Undo your most recent order this round",
   },
 
@@ -53,30 +72,35 @@ export const SPECIAL_SPECS: Record<SpecialKey, SpecialSpec> = {
   price_shield: {
     key: "price_shield",
     implemented: false,
+    window: "both",
     blockedBy: "Market event cards are not implemented yet",
     action: "Cancel the next market event's effect on your portfolio",
   },
   margin_immunity: {
     key: "margin_immunity",
     implemented: false,
+    window: "both",
     blockedBy: "Short selling and margin calls are not implemented yet",
     action: "Skip one margin call",
   },
   quick_loan: {
     key: "quick_loan",
     implemented: false,
+    window: "both",
     blockedBy: "Borrowing and interest are not implemented yet",
     action: "Borrow cash at a discounted rate",
   },
   tax_dodge: {
     key: "tax_dodge",
     implemented: false,
+    window: "both",
     blockedBy: "Capital gains tax is not implemented yet",
     action: "Skip the next capital gains deduction",
   },
   freeze_rival: {
     key: "freeze_rival",
     implemented: false,
+    window: "both",
     blockedBy: "Needs opponent targeting",
     action: "Stop one opponent trading next round",
   },
@@ -95,7 +119,16 @@ export function specialInfo(key: string) {
     action: spec?.action ?? "",
     implemented: spec?.implemented ?? false,
     blockedBy: spec?.blockedBy,
+    window: spec?.window ?? "both",
   };
+}
+
+/** Can this card be played in the window currently open? */
+export function playableNow(key: string, phase: string): boolean {
+  const w = specialInfo(key).window;
+  if (phase === "pre-round") return w === "pre" || w === "both";
+  if (phase === "special-round") return w === "post" || w === "both";
+  return false;
 }
 
 /**

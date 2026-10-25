@@ -4,12 +4,18 @@ import type { GameState, Phase } from "@/lib/game/state";
 
 const PHASE_LABEL: Record<Phase, string> = {
   dealing: "Dealing",
+  "pre-round": "Cards open",
   trading: "Trading open",
   settling: "Settling",
   "round-complete": "Round complete",
+  "day-prices": "Closing prices",
+  "special-round": "Special round",
   "day-complete": "Day complete",
   finished: "Game over",
 };
+
+/** Phases where the clock is counting down something the player can act in. */
+const LIVE_PHASES: Phase[] = ["pre-round", "trading", "special-round"];
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -42,7 +48,7 @@ export function GameHeader({
   const roundsDone = (state.day - 1) * state.roundsPerDay + state.round;
   const progress = Math.min(100, (roundsDone / totalRounds) * 100);
 
-  const open = state.phase === "trading";
+  const open = LIVE_PHASES.includes(state.phase);
   const secs = state.secondsLeft;
   const urgent = open && secs !== null && secs <= 15;
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { getCompany } from "@/lib/brand/companies";
 import { CompanyLogo } from "@/components/brand/company-logo";
 import {
+  canTrade,
   directionClass,
   formatMoney,
   formatPercent,
@@ -54,7 +55,8 @@ export function OrderPanel({
   const maxBuy = doubleTrade ? baseMax * 2 : baseMax;
   const held = sharesHeld(player, ticker);
   const frozen = quote?.frozen ?? false;
-  const tradingOpen = state.phase === "trading" && !frozen;
+  const acted = player.actedThisRound;
+  const tradingOpen = canTrade(state.phase) && !frozen && !acted;
 
   const total = qty * price;
   const canBuy = tradingOpen && qty > 0 && qty <= maxBuy;
@@ -154,15 +156,25 @@ export function OrderPanel({
         <button
           type="button"
           onClick={onPass}
-          disabled={state.phase !== "trading"}
+          disabled={!canTrade(state.phase) || acted}
           className="interactive mt-1.5 w-full rounded-md border border-line-strong py-1.5 text-xs font-medium text-ink-soft hover:bg-surface-2 hover:text-ink disabled:opacity-35"
         >
           Pass this round
         </button>
 
-        {frozen && (
-          <p className="mt-2.5 text-center text-[0.6875rem] text-ink-faint">
-            Trading is frozen on {ticker} this round.
+        {/* Say why the buttons are off — a dead control with no reason is
+            indistinguishable from a broken one. */}
+        {(frozen || acted || !canTrade(state.phase)) && (
+          <p className="mt-2 text-center text-[0.6875rem] text-ink-faint">
+            {frozen
+              ? `Trading is frozen on ${ticker} this round.`
+              : acted
+                ? "You have used your action this round."
+                : state.phase === "pre-round"
+                  ? "Cards window — trading opens shortly."
+                  : state.phase === "special-round"
+                    ? "Special round — cards only."
+                    : "Trading is closed."}
           </p>
         )}
       </div>

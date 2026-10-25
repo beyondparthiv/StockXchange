@@ -134,16 +134,42 @@ export type NewsItem = {
    ---------------------------------------------------------------------- */
 
 /**
- * `trading` is the only phase that accepts orders. The transition phases exist
- * so the UI can run its round/day animations without racing the engine.
+ * The day cycle.
+ *
+ *   pre-round      15s to play cards that inform the round ahead (Insider
+ *                  Tip, Double Trade). No trading.
+ *   trading        the order window. ONE action per round — an order or a
+ *                  pass — so a round is a decision, not a shopping trip.
+ *   settling       the engine is closing the round.
+ *   round-complete transition between the day's two rounds.
+ *   day-prices     the day's closing prices, held on screen to be read.
+ *   special-round  30s for cards that act after prices are known.
+ *   day-complete   transition into the next day.
+ *
+ * Only `trading` accepts orders; only `pre-round` and `special-round` accept
+ * special cards. Keeping those windows separate is what stops a round
+ * collapsing into "do everything at once".
  */
 export type Phase =
   | "dealing"
+  | "pre-round"
   | "trading"
   | "settling"
   | "round-complete"
+  | "day-prices"
+  | "special-round"
   | "day-complete"
   | "finished";
+
+/** Phases that accept a buy/sell order. */
+export function canTrade(phase: Phase): boolean {
+  return phase === "trading";
+}
+
+/** Phases that accept a special card. */
+export function canPlaySpecials(phase: Phase): boolean {
+  return phase === "pre-round" || phase === "special-round";
+}
 
 export type GameState = {
   config: GameConfig;
