@@ -46,14 +46,25 @@ export function GameScreen({
   config?: GameConfig;
 } = {}) {
   /*
-   * The game's id, created on the client AFTER mount.
+   * The game's id, in a ref rather than state.
    *
-   * Generating it during render with Date.now()/Math.random() desynced the
-   * server and client renders: the opening specials are seeded from it, so
-   * SSR dealt one pair of cards and hydration dealt another, and React threw
-   * the whole tree away. Null until mounted means both renders agree.
+   * It must not be generated during render: built with Date.now()/
+   * Math.random() there, the server and client disagreed about the opening
+   * specials (which are seeded from it) and React discarded the tree. It
+   * also must not be set via setState in an effect, which just trades a
+   * hydration bug for a cascading render.
+   *
+   * A ref created lazily on first use from inside an effect satisfies both:
+   * nothing random happens while rendering, and nothing re-renders to
+   * publish it.
    */
-  const [gameId, setGameId] = useState<string | null>(null);
+  const gameIdRef = useRef<string | null>(null);
+  const ensureGameId = useCallback(() => {
+    gameIdRef.current ??= `g-${Date.now().toString(36)}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
+    return gameIdRef.current;
+  }, []);
 
   // The roster and config are real; prices and cards come from the engine.
   const [state, setState] = useState<GameState>(() =>
@@ -222,7 +233,7 @@ export function GameScreen({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "insight",
-              gameId,
+              gameId: ensureGameId(),
               day: cur.day,
               round: cur.round,
               ticker: selected,
@@ -323,7 +334,7 @@ export function GameScreen({
         ),
       }));
     },
-    [gameId, selected, pushToast],
+    [ensureGameId, selected, pushToast],
   );
 
   const pass = useCallback(() => {
@@ -350,8 +361,7 @@ export function GameScreen({
    */
   useEffect(() => {
     let cancelled = false;
-    const id = `g-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    setGameId(id);
+    const id = ensureGameId();
 
     (async () => {
       try {
@@ -428,8 +438,7 @@ export function GameScreen({
       cancelled = true;
     };
     // Once per game.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ensureGameId]);
 
   /*
    * Round loop.
@@ -453,7 +462,8 @@ export function GameScreen({
    * what starts the next round.
    */
   useEffect(() => {
-    if (state.phase === "finished" || !gameId) return;
+    if (state.phase === "finished") return;
+    const gameId = ensureGameId();
 
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -638,7 +648,7 @@ export function GameScreen({
     };
     // Intentionally keyed on the round only -- see the note above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.day, state.round, gameId]);
+  }, [state.day, state.round]);
 
   return (
     <>
