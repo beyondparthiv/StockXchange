@@ -210,9 +210,8 @@ export default function Lobby({
   }
 
   if (status === "in_game") {
-    // Prices, signals and news are still mock, but the roster and config are
-    // the real ones from this room — so you play against the people who
-    // actually joined, under the settings the host chose.
+    // Live: the host's client runs the game and publishes state; everyone
+    // else renders what arrives and posts orders to the inbox.
     return (
       <GameScreen
         seats={players.map((p) => ({
@@ -221,6 +220,7 @@ export default function Lobby({
         }))}
         meId={userId}
         config={room.config}
+        live={{ roomId: room.id, isHost }}
       />
     );
   }

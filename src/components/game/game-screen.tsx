@@ -23,6 +23,15 @@ import {
   specialInfo,
 } from "@/lib/game/specials";
 import { botOrder } from "@/lib/game/bots";
+import {
+  applyPendingOrders,
+  createLiveGame,
+  fetchLiveState,
+  fetchRoundOrders,
+  pushLiveState,
+  submitLiveOrder,
+  subscribeLiveState,
+} from "@/lib/game/live";
 import type { GameConfig } from "@/lib/game/config";
 import type { GameState, TradeSide } from "@/lib/game/state";
 
@@ -45,15 +54,24 @@ const PRE_ROUND_SECONDS = 15;
 /** Cards window after the day's closing prices. */
 const SPECIAL_ROUND_SECONDS = 30;
 
+export type LiveRoom = {
+  roomId: string;
+  /** The host's client owns the clock and writes the authoritative state. */
+  isHost: boolean;
+};
+
 export function GameScreen({
   seats,
   meId,
   config,
+  live,
 }: {
   /** The people who actually joined the room, from the lobby. */
   seats?: Seat[];
   meId?: string;
   config?: GameConfig;
+  /** Present for an online room; absent for offline bot/solo games. */
+  live?: LiveRoom;
 } = {}) {
   /*
    * The game's id, in a ref rather than state.
@@ -118,7 +136,50 @@ export function GameScreen({
     stateRef.current = state;
   });
 
-  // The board owns the viewport. Locking body scroll stops a stray pixel of
+  /*
+   * Live sync.
+   *
+   * The host runs the game and publishes state; everyone else renders what
+   * arrives. A guest therefore does NOT run the round cycle at all — two
+   * clocks would drift within a round and show different markets, which is
+   * exactly the bug this replaces.
+   */
+  const isGuest = Boolean(live) && !live!.isHost;
+
+  useEffect(() => {
+    if (!live || live.isHost) return;
+    let cancelled = false;
+
+    // Catch up first, in case we joined mid-round.
+    void fetchLiveState(live.roomId).then((s) => {
+      if (!cancelled && s) setState(s);
+    });
+
+    const unsubscribe = subscribeLiveState(live.roomId, (s) => {
+      if (!cancelled) setState(s);
+    });
+
+    // Both, not just the unsubscribe: the catch-up fetch above is already in
+    // flight and would otherwise resolve after unmount and set state on a
+    // dead component.
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [live]);
+
+  // Host: create the row once, then publish on every change.
+  useEffect(() => {
+    if (!live?.isHost || !meId) return;
+    void createLiveGame(live.roomId, meId, stateRef.current);
+  }, [live, meId]);
+
+  useEffect(() => {
+    if (!live?.isHost) return;
+    void pushLiveState(live.roomId, state);
+  }, [live, state]);
+
+    // The board owns the viewport. Locking body scroll stops a stray pixel of
   // overflow (or a browser's scroll-anchoring) from introducing a scrollbar
   // that shifts the whole table sideways mid-round.
 
@@ -140,6 +201,16 @@ export function GameScreen({
   const settleRound = useCallback(
     async (gameId: string, day: number, round: number, roundsPerDay: number) => {
       setState((prev) => ({ ...prev, phase: "settling", secondsLeft: null }));
+
+      // In a live room the host applies everyone's posted orders before the
+      // engine prices the round, so every player's action lands against the
+      // same pre-settlement market.
+      if (live?.isHost) {
+        const orders = await fetchRoundOrders(live.roomId, day, round);
+        if (orders.length > 0) {
+          setState((prev) => applyPendingOrders(prev, orders));
+        }
+      }
 
       type EngineQuote = {
         ticker: string;
@@ -239,7 +310,7 @@ export function GameScreen({
         };
       });
     },
-    [],
+    [live],
   );
 
   const pushToast = useCallback((text: string, side: TradeSide) => {
@@ -258,16 +329,43 @@ export function GameScreen({
    */
   const submitOrder = useCallback(
     (side: TradeSide, ticker: string, qty: number) => {
+      const verb =
+        side === "buy" ? "bought" : side === "short" ? "shorted" : "sold";
+
+      if (isGuest && live && meId) {
+        /*
+         * A guest posts an intent and waits. Applying it locally would show
+         * a fill that the host might reject, and the next pushed state
+         * would silently undo it — worse than waiting a moment.
+         */
+        const cur = stateRef.current;
+        void submitLiveOrder(
+          live.roomId,
+          meId,
+          cur.day,
+          cur.round,
+          side,
+          ticker,
+          qty,
+        );
+        setState((prev) => ({
+          ...prev,
+          players: prev.players.map((p) =>
+            p.id === prev.meId ? { ...p, actedThisRound: true } : p,
+          ),
+        }));
+        pushToast(`Order placed: ${verb} ${qty} ${ticker}`, side);
+        return;
+      }
+
       setState((prev) => {
         const res = applyOrder(prev, prev.meId, side, ticker, qty);
         if (!res.filled) return prev;
         return res.state;
       });
-      const verb =
-        side === "buy" ? "bought" : side === "short" ? "shorted" : "sold";
       pushToast(`You ${verb} ${qty} ${ticker}`, side);
     },
-    [pushToast],
+    [isGuest, live, meId, pushToast],
   );
 
   /**
@@ -279,6 +377,7 @@ export function GameScreen({
    * shares it does not hold.
    */
   useEffect(() => {
+    if (isGuest) return;
     if (state.phase !== "trading") return;
     const bots = state.players.filter((p) => p.isBot && !p.actedThisRound);
     if (bots.length === 0) return;
@@ -508,13 +607,25 @@ export function GameScreen({
   );
 
   const pass = useCallback(() => {
+    if (isGuest && live && meId) {
+      const cur = stateRef.current;
+      void submitLiveOrder(
+        live.roomId,
+        meId,
+        cur.day,
+        cur.round,
+        "pass",
+        null,
+        0,
+      );
+    }
     setState((prev) => ({
       ...prev,
       players: prev.players.map((p) =>
         p.id === prev.meId ? { ...p, actedThisRound: true } : p,
       ),
     }));
-  }, []);
+  }, [isGuest, live, meId]);
 
 
   /*
@@ -628,6 +739,8 @@ export function GameScreen({
    * round hold still until the final step.
    */
   useEffect(() => {
+    // Only the host advances the game; guests render what they are sent.
+    if (isGuest) return;
     if (state.phase === "finished") return;
     const gameId = ensureGameId();
 
@@ -776,7 +889,7 @@ export function GameScreen({
     };
     // Intentionally keyed on the round only — see the note above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.day, state.round]);
+  }, [state.day, state.round, isGuest]);
 
   return (
     <>
