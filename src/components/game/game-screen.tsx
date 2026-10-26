@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getCompany } from "@/lib/brand/companies";
 import { CompanyLogo } from "@/components/brand/company-logo";
 import { GameHeader, PhaseTransition } from "@/components/game/game-header";
+import { GameOver } from "@/components/game/game-over";
 import { MarketGrid } from "@/components/game/market";
 import { CardGrid } from "@/components/game/cards";
 import { OrderPanel } from "@/components/game/order-panel";
@@ -422,8 +423,16 @@ export function GameScreen({
               order.qty,
             );
             if (res.filled) {
+              // "short" is a third side; labelling it "sold" made bots look
+              // like they were dumping stock they never owned.
+              const verb =
+                order.side === "buy"
+                  ? "bought"
+                  : order.side === "short"
+                    ? "shorted"
+                    : "sold";
               pushToast(
-                `${res.filled.playerName} ${order.side === "buy" ? "bought" : "sold"} ${order.qty} ${order.ticker}`,
+                `${res.filled.playerName} ${verb} ${order.qty} ${order.ticker}`,
                 order.side,
               );
               return res.state;
@@ -893,6 +902,8 @@ export function GameScreen({
 
   return (
     <>
+      {state.phase === "finished" && <GameOver state={state} />}
+
       <GameHeader
         state={state}
         onOpenHistory={() => setHistoryOpen(true)}

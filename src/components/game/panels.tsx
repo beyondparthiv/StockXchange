@@ -310,7 +310,11 @@ function ActivityRow({ a }: { a: Activity }) {
       <span className="min-w-0 flex-1 truncate text-ink-soft">
         <span className="text-ink">{a.playerName}</span>{" "}
         <span className={a.side === "buy" ? "text-up" : "text-down"}>
-          {a.side === "buy" ? "bought" : "sold"}
+          {a.side === "buy"
+            ? "bought"
+            : a.side === "short"
+              ? "shorted"
+              : "sold"}
         </span>{" "}
         {a.shares} {a.ticker}
       </span>

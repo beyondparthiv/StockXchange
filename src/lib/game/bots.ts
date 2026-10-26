@@ -19,8 +19,10 @@
 
 import {
   maxAffordable,
+  maxShortable,
   priceOf,
   sharesHeld,
+  sharesShorted,
   type GameState,
   type Player,
   type TradeSide,
@@ -118,17 +120,48 @@ export function botOrder(state: GameState, bot: Player): BotOrder | null {
   }
   if (!best || !worst) return null;
 
-  // 2. Sell first: a bot holding something it now dislikes should get out
-  //    before spending the proceeds elsewhere.
+  // 2. Cover first. A bot sitting on a short of something it now likes
+  //    should buy it back before doing anything else — leaving the short
+  //    open while buying elsewhere is how a bot bleeds out.
+  const shortOnBest = sharesShorted(bot, best.ticker);
+  if (best.score > CONVICTION_FLOOR && shortOnBest > 0) {
+    const qty = Math.min(
+      shortOnBest,
+      Math.max(1, maxAffordable(state, bot, best.ticker)),
+    );
+    if (qty >= 1) {
+      return { playerId: bot.id, side: "buy", ticker: best.ticker, qty };
+    }
+  }
+
+  // 3. Sell a long it has turned against.
   if (worst.score < -CONVICTION_FLOOR) {
     const held = sharesHeld(bot, worst.ticker);
     if (held > 0) {
       const qty = Math.max(1, Math.round(held * appetite));
       return { playerId: bot.id, side: "sell", ticker: worst.ticker, qty };
     }
+
+    /*
+     * 4. Short it if the conviction is strong enough.
+     *
+     * A higher bar than buying: a short's downside is unbounded, so a bot
+     * that shorts on the same flimsy signal it would buy on will blow up.
+     * Bolder bots (high appetite) reach for it sooner.
+     */
+    const shortBar = CONVICTION_FLOOR * (3 - appetite);
+    if (held === 0 && worst.score < -shortBar) {
+      const price = priceOf(state, worst.ticker);
+      const room = maxShortable(state, bot, worst.ticker);
+      if (price > 0 && room >= 1) {
+        const budget = bot.cash * MAX_WALLET_FRACTION * appetite * 0.6;
+        const qty = Math.min(room, Math.max(1, Math.floor(budget / price)));
+        return { playerId: bot.id, side: "short", ticker: worst.ticker, qty };
+      }
+    }
   }
 
-  // 3. Otherwise buy conviction, sized by wallet and appetite.
+  // 5. Otherwise buy conviction, sized by wallet and appetite.
   if (best.score > CONVICTION_FLOOR) {
     const price = priceOf(state, best.ticker);
     if (price > 0) {
