@@ -16,7 +16,12 @@ import {
 } from "@/components/game/panels";
 import { mockGameState, type Seat } from "@/lib/game/mock";
 import { applyOrder } from "@/lib/game/orders";
-import { dealSpecials, playableNow, specialInfo } from "@/lib/game/specials";
+import {
+  LOAN_AMOUNT,
+  dealSpecials,
+  playableNow,
+  specialInfo,
+} from "@/lib/game/specials";
 import { botOrder } from "@/lib/game/bots";
 import type { GameConfig } from "@/lib/game/config";
 import type { GameState, TradeSide } from "@/lib/game/state";
@@ -258,10 +263,9 @@ export function GameScreen({
         if (!res.filled) return prev;
         return res.state;
       });
-      pushToast(
-        `You ${side === "buy" ? "bought" : "sold"} ${qty} ${ticker}`,
-        side,
-      );
+      const verb =
+        side === "buy" ? "bought" : side === "short" ? "shorted" : "sold";
+      pushToast(`You ${verb} ${qty} ${ticker}`, side);
     },
     [pushToast],
   );
@@ -408,6 +412,24 @@ export function GameScreen({
           pushToast("Insider Tip failed — engine unavailable", "sell");
           return;
         }
+      }
+
+      if (card.key === "quick_loan") {
+        // Cash now, booked as debt so net worth tells the truth immediately
+        // rather than flattering the player until settlement.
+        setState((prev) => ({
+          ...prev,
+          players: prev.players.map((p) =>
+            p.id === prev.meId
+              ? {
+                  ...p,
+                  cash: p.cash + LOAN_AMOUNT,
+                  debt: (p.debt ?? 0) + LOAN_AMOUNT,
+                }
+              : p,
+          ),
+        }));
+        pushToast(`Deposited $${LOAN_AMOUNT / 100} — repaid from net worth`, "buy");
       }
 
       if (card.key === "double_trade") {

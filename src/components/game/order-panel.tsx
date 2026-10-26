@@ -9,7 +9,9 @@ import {
   formatMoney,
   formatPercent,
   maxAffordable,
+  maxShortable,
   me,
+  sharesShorted,
   moveOf,
   priceOf,
   sharesHeld,
@@ -54,13 +56,16 @@ export function OrderPanel({
   const baseMax = maxAffordable(state, player, ticker);
   const maxBuy = doubleTrade ? baseMax * 2 : baseMax;
   const held = sharesHeld(player, ticker);
+  const shorted = sharesShorted(player, ticker);
+  const maxShort = maxShortable(state, player, ticker);
   const frozen = quote?.frozen ?? false;
   const acted = player.actedThisRound;
   const tradingOpen = canTrade(state.phase) && !frozen && !acted;
 
   const total = qty * price;
   const canBuy = tradingOpen && qty > 0 && qty <= maxBuy;
-  const canSell = tradingOpen && qty > 0 && qty <= held;
+  const canSell = tradingOpen && qty > 0 && qty <= Math.max(0, held);
+  const canShort = tradingOpen && qty > 0 && qty <= maxShort;
 
   const step = (d: number) => setQty((q) => Math.max(1, q + d));
 
@@ -96,7 +101,15 @@ export function OrderPanel({
               {doubleTrade && <span className="ml-0.5 text-accent">2×</span>}
             </span>
             <span className="block">
-              Held <span className="font-mono text-ink-soft">{held}</span>
+              {shorted > 0 ? (
+                <>
+                  Short <span className="font-mono text-down">{shorted}</span>
+                </>
+              ) : (
+                <>
+                  Held <span className="font-mono text-ink-soft">{held}</span>
+                </>
+              )}
             </span>
           </span>
         </div>
@@ -141,7 +154,7 @@ export function OrderPanel({
             onClick={() => onSubmit("sell", ticker, qty)}
             className="interactive rounded-md border border-down/40 py-2 text-sm font-semibold text-down hover:bg-down/10 disabled:cursor-not-allowed disabled:opacity-35"
           >
-            Sell
+            {shorted > 0 ? "Sell" : "Sell"}
           </button>
           <button
             type="button"
@@ -149,9 +162,24 @@ export function OrderPanel({
             onClick={() => onSubmit("buy", ticker, qty)}
             className="cta rounded-md bg-up py-2 text-sm font-semibold text-white hover:bg-up-bright disabled:cursor-not-allowed disabled:opacity-35"
           >
-            Buy
+            {/* Buying while short is covering, and saying so avoids the
+                player thinking they are opening a long by mistake. */}
+            {shorted > 0 ? "Cover" : "Buy"}
           </button>
         </div>
+
+        <button
+          type="button"
+          disabled={!canShort}
+          onClick={() => onSubmit("short", ticker, qty)}
+          title={`Sell ${ticker} you do not own — you are paid now and owe the shares back. Profit if the price falls.`}
+          className="interactive mt-2 w-full rounded-md border border-down/50 bg-down/8 py-2 text-sm font-semibold text-down hover:bg-down/15 disabled:cursor-not-allowed disabled:opacity-35"
+        >
+          Short sell
+          <span className="ml-1.5 font-mono text-[0.625rem] font-normal opacity-70">
+            max {maxShort}
+          </span>
+        </button>
 
         <button
           type="button"

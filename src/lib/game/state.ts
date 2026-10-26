@@ -85,8 +85,16 @@ export type SpecialCard = {
 
 export type Holding = {
   ticker: string;
+  /**
+   * Positive for a long position, NEGATIVE for a short.
+   *
+   * One signed number rather than two lists. Every derived figure then
+   * works for both sides without a special case: holdings value goes
+   * negative, and P&L of `shares * (price - avgCost)` flips sign exactly
+   * as a short's profit should — you make money when the price falls.
+   */
   shares: number;
-  /** Average price paid, for the P&L column. */
+  /** Average price paid (long) or shorted at (short). */
   avgCost: Cents;
 };
 
@@ -96,6 +104,14 @@ export type Player = {
   /** Driven by the local bot engine rather than a human. */
   isBot?: boolean;
   cash: Cents;
+  /**
+   * Borrowed cash, repaid out of net worth at the end.
+   *
+   * Held separately from `cash` so the wallet can show what is yours and
+   * what is owed. A loan that silently inflated the cash line would make
+   * the leaderboard lie.
+   */
+  debt?: Cents;
   holdings: Holding[];
   /** Set once the player has acted this round; drives the leaderboard ticks. */
   actedThisRound: boolean;
@@ -105,7 +121,12 @@ export type Player = {
    Activity
    ---------------------------------------------------------------------- */
 
-export type TradeSide = "buy" | "sell";
+/**
+ * `short` sells stock you do not own: it credits the proceeds now and
+ * leaves you owing the shares. `buy` covers an open short before it starts
+ * building a long position.
+ */
+export type TradeSide = "buy" | "sell" | "short";
 
 export type Activity = {
   id: string;
@@ -210,7 +231,7 @@ export function holdingsValue(state: GameState, p: Player): Cents {
 }
 
 export function netWorth(state: GameState, p: Player): Cents {
-  return p.cash + holdingsValue(state, p);
+  return p.cash + holdingsValue(state, p) - (p.debt ?? 0);
 }
 
 /** Unrealised P&L on one holding at the current price. */
@@ -222,6 +243,26 @@ export function holdingPnl(state: GameState, h: Holding): Cents {
 export function maxAffordable(state: GameState, p: Player, ticker: string) {
   const price = priceOf(state, ticker);
   return price <= 0 ? 0 : Math.floor(p.cash / price);
+}
+
+/**
+ * Most shares the player may short.
+ *
+ * Capped by cash as collateral even though shorting pays out rather than
+ * costs. A short's downside is unbounded — the price can keep rising — so
+ * an uncapped one can take a player below zero with no way back, which
+ * stops being a game.
+ */
+export function maxShortable(state: GameState, p: Player, ticker: string) {
+  const price = priceOf(state, ticker);
+  if (price <= 0) return 0;
+  const openShort = Math.max(0, -sharesHeld(p, ticker));
+  return Math.max(0, Math.floor(p.cash / price) - openShort);
+}
+
+/** Shares owed on an open short, as a positive number. 0 when flat/long. */
+export function sharesShorted(p: Player, ticker: string): number {
+  return Math.max(0, -sharesHeld(p, ticker));
 }
 
 export function sharesHeld(p: Player, ticker: string): number {

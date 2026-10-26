@@ -13,6 +13,9 @@
 
 import { PLAYER_SPECIAL_CARDS } from "@/lib/game/cards";
 
+/** Cash a Quick Loan deposits, and the debt it books against you. */
+export const LOAN_AMOUNT = 50_000; // $500
+
 export type SpecialKey =
   | "insider_tip"
   | "double_trade"
@@ -80,15 +83,16 @@ export const SPECIAL_SPECS: Record<SpecialKey, SpecialSpec> = {
     key: "margin_immunity",
     implemented: false,
     window: "both",
-    blockedBy: "Short selling and margin calls are not implemented yet",
+    blockedBy: "Margin calls are not implemented yet",
     action: "Skip one margin call",
   },
   quick_loan: {
     key: "quick_loan",
-    implemented: false,
+    implemented: true,
+    // Useful before a round (more buying power) and after closing prices
+    // (cover a short you cannot afford), so it is open in both windows.
     window: "both",
-    blockedBy: "Borrowing and interest are not implemented yet",
-    action: "Borrow cash at a discounted rate",
+    action: "Deposit $500 into your wallet, repaid from your final net worth",
   },
   tax_dodge: {
     key: "tax_dodge",

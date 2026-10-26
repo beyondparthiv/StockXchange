@@ -13,6 +13,7 @@
 import {
   canTrade,
   maxAffordable,
+  maxShortable,
   priceOf,
   sharesHeld,
   type Activity,
@@ -53,45 +54,71 @@ export function applyOrder(
   const price = priceOf(state, ticker);
   const cost = price * qty;
 
+  const held = sharesHeld(player, ticker);
+
   if (side === "buy" && qty > maxAffordable(state, player, ticker)) {
     return { state, filled: null, rejected: "Not enough cash" };
   }
-  if (side === "sell" && qty > sharesHeld(player, ticker)) {
+  // Sell closes a long only. Going past zero is a short, which is a
+  // different decision with a different risk, so it needs the Short button.
+  if (side === "sell" && qty > Math.max(0, held)) {
     return { state, filled: null, rejected: "Not enough shares" };
   }
+  if (side === "short" && qty > maxShortable(state, player, ticker)) {
+    return { state, filled: null, rejected: "Not enough collateral" };
+  }
 
+  /*
+   * One signed share count covers long and short.
+   *
+   *   buy    +qty, cash out. Covers an open short first, then goes long.
+   *   sell   -qty, cash in. Only down to flat (guarded above).
+   *   short  -qty, cash IN — you are paid now for stock you will owe.
+   *
+   * Average cost is only recomputed when a position is being opened or
+   * added to. Closing part of a position does not change what the rest of
+   * it cost you, and recomputing there is the classic way to end up with a
+   * P&L that drifts.
+   */
   const players = state.players.map((p) => {
     if (p.id !== playerId) return p;
     const existing = p.holdings.find((h) => h.ticker === ticker);
+    const before = existing?.shares ?? 0;
+    const delta = side === "buy" ? qty : -qty;
+    const after = before + delta;
 
-    if (side === "buy") {
-      const shares = (existing?.shares ?? 0) + qty;
-      // Weighted average so P&L reflects what was actually paid across fills.
-      const avgCost = existing
-        ? Math.round((existing.avgCost * existing.shares + cost) / shares)
-        : price;
-      return {
-        ...p,
-        cash: p.cash - cost,
-        actedThisRound: true,
-        holdings: existing
-          ? p.holdings.map((h) =>
-              h.ticker === ticker ? { ...h, shares, avgCost } : h,
-            )
-          : [...p.holdings, { ticker, shares: qty, avgCost: price }],
-      };
+    // Cash moves opposite to the share count in every case: buying costs,
+    // selling and shorting both pay.
+    const cashDelta = side === "buy" ? -cost : cost;
+
+    // Growing a position (in whichever direction) re-averages; shrinking or
+    // flipping does not.
+    const growing = before === 0 || Math.sign(after) === Math.sign(before)
+      ? Math.abs(after) > Math.abs(before)
+      : false;
+
+    let avgCost = existing?.avgCost ?? price;
+    if (before === 0 || Math.sign(after) !== Math.sign(before)) {
+      // Opened fresh, or flipped through zero: the new position starts here.
+      avgCost = price;
+    } else if (growing) {
+      avgCost = Math.round(
+        (Math.abs(before) * (existing?.avgCost ?? price) + qty * price) /
+          Math.abs(after),
+      );
     }
 
-    const shares = (existing?.shares ?? 0) - qty;
+    const holdings = existing
+      ? p.holdings
+          .map((h) => (h.ticker === ticker ? { ...h, shares: after, avgCost } : h))
+          .filter((h) => h.shares !== 0)
+      : [...p.holdings, { ticker, shares: after, avgCost }];
+
     return {
       ...p,
-      cash: p.cash + cost,
+      cash: p.cash + cashDelta,
       actedThisRound: true,
-      // Average cost is left alone on a sell: selling does not change what
-      // the remaining shares cost you.
-      holdings: p.holdings
-        .map((h) => (h.ticker === ticker ? { ...h, shares } : h))
-        .filter((h) => h.shares > 0),
+      holdings,
     };
   });
 

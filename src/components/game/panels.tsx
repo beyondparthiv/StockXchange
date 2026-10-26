@@ -88,7 +88,17 @@ export function Wallet({
         </div>
       </div>
 
-      {/* Net worth decides the game, so it keeps the weight. */}
+      {(player.debt ?? 0) > 0 && (
+        <div className="mt-1.5 flex items-baseline justify-between">
+          <span className="text-[0.625rem] text-down">Borrowed</span>
+          <span className="t-value text-down">
+            −{formatMoney(player.debt ?? 0)}
+          </span>
+        </div>
+      )}
+
+      {/* Net worth decides the game, so it keeps the weight. Debt is already
+          subtracted — a loan that inflated this would make the board lie. */}
       <div className="mt-2 flex items-baseline justify-between border-t border-line pt-2">
         <span className="t-section">Net worth</span>
         <span className="font-mono text-lg font-semibold tabular-nums text-ink">
@@ -137,11 +147,21 @@ export function Portfolio({
               >
                 {company && <CompanyLogo company={company} size={20} />}
                 <div className="min-w-0 flex-1">
-                  <div className="t-ticker text-[0.75rem] text-ink">
-                    {h.ticker}
+                  <div className="flex items-center gap-1.5">
+                    <span className="t-ticker text-[0.75rem] text-ink">
+                      {h.ticker}
+                    </span>
+                    {/* A short reads as a negative share count otherwise,
+                        which is easy to misread as a loss rather than a
+                        position. Label it. */}
+                    {h.shares < 0 && (
+                      <span className="rounded-sm bg-down/15 px-1 text-[0.5rem] font-semibold uppercase tracking-wider text-down">
+                        Short
+                      </span>
+                    )}
                   </div>
                   <div className="text-[0.625rem] text-ink-faint">
-                    {h.shares} @ {formatMoney(h.avgCost)}
+                    {Math.abs(h.shares)} @ {formatMoney(h.avgCost)}
                   </div>
                 </div>
                 <div className="text-right">
