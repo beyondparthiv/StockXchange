@@ -1,49 +1,50 @@
 import { NextResponse } from "next/server";
+import { dealGame, insight, settle } from "@/lib/engine";
 
 /**
- * Server-side proxy to the price engine's round endpoints.
+ * Game engine endpoint.
  *
- * Why proxy rather than let the browser call the engine:
- *  - the engine URL stays server-only and can differ per environment,
- *  - no CORS to configure,
- *  - one place to add auth, retries and rate limiting later,
- *  - and critically, the engine is the authority on prices. Reaching it
- *    through our own server is the shape the real game needs, even while the
- *    caller is still a single browser.
+ * The engine runs in-process rather than as a separate Python service.
+ * That service still exists under price-engine/ as the reference
+ * implementation with its own tests, but it cannot be reached from a
+ * Vercel deployment without hosting it somewhere, and when it is
+ * unreachable the game degrades in a way that is easy to miss: prices
+ * still move on the fallback path, but signals and news never refresh, so
+ * every day deals the same cards. Running it here removes that failure
+ * mode along with the cold starts and the CORS.
  *
  * POST /api/game/settle
- *   { action: "deal",   gameId, days?, roundsPerDay? }
- *   { action: "settle", gameId, day, round, roundsPerDay, quotes }
+ *   { action: "deal",    gameId }
+ *   { action: "settle",  gameId, day, round, roundsPerDay, quotes }
+ *   { action: "insight", gameId, day, round, ticker, quotes }
  *
- * Returns `{ ok: false, error }` with HTTP 200 when the engine is
- * unreachable, so the board can fall back to local pacing instead of
- * crashing — a dead engine should degrade the game, not end it.
+ * Responses keep the snake_case field names the client already maps, so
+ * this is a drop-in replacement for the Python service.
  */
 
-const ENGINE = process.env.PRICE_ENGINE_URL ?? "http://localhost:8000";
+type WireQuote = {
+  ticker: string;
+  initial: number;
+  last_round: number;
+  current: number;
+  frozen: boolean;
+};
 
-async function engineFetch(path: string, body: unknown) {
-  const res = await fetch(`${ENGINE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    cache: "no-store",
-    signal: AbortSignal.timeout(6000),
-  });
-  if (!res.ok) throw new Error(`Engine returned HTTP ${res.status}`);
-  return res.json();
-}
+const toEngine = (q: WireQuote) => ({
+  ticker: q.ticker,
+  initial: q.initial,
+  lastRound: q.last_round,
+  current: q.current,
+  frozen: q.frozen,
+});
 
-/** The engine owns the roster, so the board never has to agree with it. */
-async function companies() {
-  const res = await fetch(`${ENGINE}/companies`, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(6000),
-  });
-  if (!res.ok) throw new Error(`Engine returned HTTP ${res.status}`);
-  const data = await res.json();
-  return data.companies;
-}
+const toWire = (q: ReturnType<typeof toEngine>): WireQuote => ({
+  ticker: q.ticker,
+  initial: q.initial,
+  last_round: q.lastRound,
+  current: q.current,
+  frozen: q.frozen,
+});
 
 export async function POST(request: Request) {
   let payload: Record<string, unknown>;
@@ -59,40 +60,46 @@ export async function POST(request: Request) {
   }
 
   try {
-    const roster = await companies();
-
     if (action === "deal") {
-      const data = await engineFetch("/game/deal", {
-        game_id: gameId,
-        companies: roster,
-        days: payload.days ?? 10,
-        rounds_per_day: payload.roundsPerDay ?? 2,
+      const { quotes, signals, news } = dealGame(gameId);
+      return NextResponse.json({
+        ok: true,
+        quotes: quotes.map(toWire),
+        signals,
+        news,
       });
-      return NextResponse.json({ ok: true, ...data });
-    }
-
-    if (action === "insight") {
-      const data = await engineFetch("/insight", {
-        game_id: gameId,
-        day: payload.day,
-        round: payload.round,
-        ticker: payload.ticker,
-        companies: roster,
-        quotes: payload.quotes ?? [],
-      });
-      return NextResponse.json({ ok: true, ...data });
     }
 
     if (action === "settle") {
-      const data = await engineFetch("/round/settle", {
-        game_id: gameId,
-        day: payload.day,
-        round: payload.round,
-        rounds_per_day: payload.roundsPerDay ?? 2,
-        companies: roster,
-        quotes: payload.quotes ?? [],
+      const quotes = ((payload.quotes as WireQuote[]) ?? []).map(toEngine);
+      const result = settle(
+        gameId,
+        Number(payload.day ?? 1),
+        Number(payload.round ?? 1),
+        Number(payload.roundsPerDay ?? 2),
+        quotes,
+      );
+      return NextResponse.json({
+        ok: true,
+        quotes: result.quotes.map(toWire),
+        next_signals: result.nextSignals,
+        news: result.news,
       });
-      return NextResponse.json({ ok: true, ...data });
+    }
+
+    if (action === "insight") {
+      const quotes = ((payload.quotes as WireQuote[]) ?? []).map(toEngine);
+      return NextResponse.json({
+        ok: true,
+        ticker: payload.ticker,
+        direction: insight(
+          gameId,
+          Number(payload.day ?? 1),
+          Number(payload.round ?? 1),
+          String(payload.ticker ?? ""),
+          quotes,
+        ),
+      });
     }
 
     return NextResponse.json(
@@ -100,10 +107,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   } catch (err) {
-    const error =
-      err instanceof Error ? err.message : "Could not reach the price engine";
-    // 200 on purpose: the caller branches on `ok`, and a stopped engine is an
-    // expected local-dev condition rather than a server fault.
+    const error = err instanceof Error ? err.message : "Engine failure";
+    // 200 on purpose: the client branches on `ok` and falls back rather
+    // than treating this as a crash.
     return NextResponse.json({ ok: false, error }, { status: 200 });
   }
 }
