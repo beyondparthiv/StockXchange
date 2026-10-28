@@ -151,13 +151,26 @@ export function GameScreen({
     if (!live || live.isHost) return;
     let cancelled = false;
 
+    /*
+     * `meId` is the one field in the shared state that is per-viewer.
+     *
+     * The host publishes its whole state object, meId included, so a guest
+     * adopting it wholesale started rendering the HOST's wallet and
+     * portfolio. The leaderboard looked right (it iterates every player)
+     * while "your" positions were someone else's — the order applied, the
+     * portfolio stayed empty, and nothing looked broken enough to explain
+     * it. Stamp our own id on every state we receive.
+     */
+    const mine = (s: GameState): GameState =>
+      meId ? { ...s, meId } : s;
+
     // Catch up first, in case we joined mid-round.
     void fetchLiveState(live.roomId).then((s) => {
-      if (!cancelled && s) setState(s);
+      if (!cancelled && s) setState(mine(s));
     });
 
     const unsubscribe = subscribeLiveState(live.roomId, (s) => {
-      if (!cancelled) setState(s);
+      if (!cancelled) setState(mine(s));
     });
 
     // Both, not just the unsubscribe: the catch-up fetch above is already in
@@ -167,7 +180,7 @@ export function GameScreen({
       cancelled = true;
       unsubscribe();
     };
-  }, [live]);
+  }, [live, meId]);
 
   // Host: create the row once, then publish on every change.
   useEffect(() => {
