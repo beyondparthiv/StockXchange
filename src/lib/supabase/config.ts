@@ -20,3 +20,22 @@ export function isSupabaseConfigured(): boolean {
     !SUPABASE_ANON_KEY.startsWith("your-")
   );
 }
+
+/*
+ * Which sign-in methods to offer.
+ *
+ * Google and phone are disabled by default because enabling them is not a
+ * code change — Google needs OAuth credentials in Google Cloud plus the
+ * provider switched on in Supabase, and phone needs a paid SMS provider
+ * (Twilio and friends). Showing a button that can only ever return
+ * "provider is not enabled" is worse than not showing it: the user assumes
+ * the app is broken rather than the option being unavailable.
+ *
+ * Turn either on by setting the flag to "true" in the environment once the
+ * provider is actually configured. The code behind both already works.
+ */
+export const GOOGLE_AUTH_ENABLED =
+  process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === "true";
+
+export const PHONE_AUTH_ENABLED =
+  process.env.NEXT_PUBLIC_ENABLE_PHONE_AUTH === "true";

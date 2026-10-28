@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
   Alert,
@@ -13,14 +13,17 @@ import {
   SubmitButton,
 } from "@/components/auth/auth-ui";
 import { createClient } from "@/lib/supabase/client";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import {
+  GOOGLE_AUTH_ENABLED,
+  PHONE_AUTH_ENABLED,
+  isSupabaseConfigured,
+} from "@/lib/supabase/config";
 import { attempt } from "@/lib/supabase/errors";
 
 type Method = "password" | "phone";
 type PhoneStep = "enter-phone" | "enter-code";
 
 export default function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") ?? "/";
   const urlError = params.get("error");
@@ -43,8 +46,9 @@ export default function LoginForm() {
   const [otp, setOtp] = useState("");
 
   function done() {
-    router.push(next);
-    router.refresh(); // re-run the proxy + server components with the new session
+    // Full document request so the freshly written session cookie is
+    // definitely visible to the proxy. A client-side push can race it.
+    window.location.assign(next);
   }
 
   async function handlePasswordLogin(e: React.FormEvent) {
@@ -127,11 +131,18 @@ export default function LoginForm() {
         {error && <Alert kind="error">{error}</Alert>}
         {info && <Alert kind="success">{info}</Alert>}
 
-        <GoogleButton onClick={handleGoogle} disabled={!configured || loading} />
-
-        <Divider label="or" />
+        {GOOGLE_AUTH_ENABLED && (
+          <>
+            <GoogleButton
+              onClick={handleGoogle}
+              disabled={!configured || loading}
+            />
+            <Divider label="or" />
+          </>
+        )}
 
         {/* Method switch */}
+        {PHONE_AUTH_ENABLED && (
         <div className="grid grid-cols-2 gap-0.5 rounded-md border border-line bg-canvas-2 p-0.5 text-xs">
           {(["password", "phone"] as Method[]).map((m) => (
             <button
@@ -152,6 +163,7 @@ export default function LoginForm() {
             </button>
           ))}
         </div>
+        )}
 
         {method === "password" ? (
           <form onSubmit={handlePasswordLogin} className="space-y-3">
@@ -196,7 +208,7 @@ export default function LoginForm() {
               disabled={!configured}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+919876543210"
+              placeholder="+15551234567"
             />
             <SubmitButton loading={loading} disabled={!configured}>
               Send code

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
   Alert,
@@ -13,11 +13,13 @@ import {
   SubmitButton,
 } from "@/components/auth/auth-ui";
 import { createClient } from "@/lib/supabase/client";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import {
+  GOOGLE_AUTH_ENABLED,
+  isSupabaseConfigured,
+} from "@/lib/supabase/config";
 import { attempt } from "@/lib/supabase/errors";
 
 export default function SignupForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") ?? "/";
 
@@ -55,8 +57,16 @@ export default function SignupForm() {
     // If email confirmation is ON, there's no session yet — tell them to check
     // their inbox. If it's OFF, Supabase returns a session and we can proceed.
     if (data?.session) {
-      router.push(next);
-      router.refresh();
+      /*
+       * Hard navigation, not router.push.
+       *
+       * The session cookie is written by the Supabase client just before
+       * this runs, but a client-side push reuses the existing document and
+       * the proxy can run its auth check before the cookie is visible to
+       * it — which bounced every newly signed-up user straight back to
+       * /login. A full document request always carries the cookie.
+       */
+      window.location.assign(next);
     } else {
       setInfo("Account created. Check your email to confirm, then log in.");
     }
@@ -105,9 +115,15 @@ export default function SignupForm() {
         {error && <Alert kind="error">{error}</Alert>}
         {info && <Alert kind="success">{info}</Alert>}
 
-        <GoogleButton onClick={handleGoogle} disabled={!configured || loading} />
-
-        <Divider label="or" />
+        {GOOGLE_AUTH_ENABLED && (
+          <>
+            <GoogleButton
+              onClick={handleGoogle}
+              disabled={!configured || loading}
+            />
+            <Divider label="or" />
+          </>
+        )}
 
         <form onSubmit={handleSignup} className="space-y-3">
           <Field
