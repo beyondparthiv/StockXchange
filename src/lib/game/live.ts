@@ -160,7 +160,21 @@ export function applyPendingOrders(
   state: GameState,
   orders: PendingOrder[],
 ): GameState {
-  let next = state;
+  /*
+   * Apply against a state that still reads as `trading`.
+   *
+   * The host flips to "settling" before reaching here, and applyOrder
+   * refuses anything when trading is closed — so every guest order was
+   * being rejected as "Trading is closed" and silently dropped. The
+   * phase check exists to stop a CLIENT ordering outside the window;
+   * these intents were already accepted during it, and the host is now
+   * applying them authoritatively.
+   *
+   * The real phase is restored before returning, so nothing downstream
+   * sees the substitution.
+   */
+  const realPhase = state.phase;
+  let next: GameState = { ...state, phase: "trading" };
   for (const o of orders) {
     if (o.side === "pass" || !o.ticker || o.qty < 1) {
       next = {
@@ -181,5 +195,5 @@ export function applyPendingOrders(
           ),
         };
   }
-  return next;
+  return { ...next, phase: realPhase };
 }
