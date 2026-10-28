@@ -122,9 +122,16 @@ begins.
 - [x] **Phase 2** — Home / mode selection (3 modes, per-mode config screen, How to Play rules + card reference)
 - [x] **Phase 3** — Profile & settings (avatar upload, stats stubs, sound/theme/default-room prefs, light/dark, delete account)
 - [x] **Phase 4** — Lobby & room system (room codes, join, ready-up, host start, Supabase Realtime sync)
-- [ ] Phase 5 — Core game screen
-- [ ] Phase 6 — Price & news engine logic
-- [ ] Phase 7 — Market event & player special cards
-- [ ] Phase 8 — Bot AI
-- [ ] Phase 9 — Game end, results, leaderboard
+- [x] **Phase 5** — Core game screen (market tiles, order panel, portfolio, wallet, news, card grid, day/round cycle)
+- [x] **Phase 6** — Price & news engine (seeded settlement, imperfect signals, procedural news)
+- [~] Phase 7 — Cards: player specials done (Insider Tip, Double Trade, Rewind, Quick Loan); market event cards outstanding
+- [x] **Phase 8** — Bot AI (reads the same imperfect signals, buys, sells, shorts and covers)
+- [x] **Phase 9** — Game end & final standings
 - [ ] Phase 10 — Polish & deploy
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).
+
+The code is open. Note that game *mechanics* are not protectable by copyright
+in any case; what this licence covers is the implementation.
