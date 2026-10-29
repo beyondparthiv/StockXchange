@@ -372,14 +372,29 @@ export function GameScreen({
         return;
       }
 
-      setState((prev) => {
-        const res = applyOrder(prev, prev.meId, side, ticker, qty);
-        if (!res.filled) return prev;
-        return res.state;
+      /*
+       * Decide the order OUTSIDE the state updater so the toast can report
+       * what actually happened. Previously the result was computed inside
+       * the updater and the success toast fired unconditionally after it,
+       * so a rejected order — not enough cash, not enough shares — still
+       * announced "You bought 10 AAPL" while the portfolio never moved.
+       * `applyOrder` already returns the reason; it was simply discarded.
+       */
+      const cur = stateRef.current;
+      const res = applyOrder(cur, cur.meId, side, ticker, qty, {
+        // Double Trade only widens a BUY, and only for this one order.
+        buyMultiplier: doubleTrade ? 2 : 1,
       });
+      if (!res.filled) {
+        pushToast(res.rejected ?? "Order rejected", "sell");
+        return;
+      }
+      setState(res.state);
+      // The card is spent on the order it enabled, not on the round.
+      if (doubleTrade) setDoubleTrade(false);
       pushToast(`You ${verb} ${qty} ${ticker}`, side);
     },
-    [isGuest, live, meId, pushToast],
+    [isGuest, live, meId, pushToast, doubleTrade],
   );
 
   /**

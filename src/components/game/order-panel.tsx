@@ -116,9 +116,18 @@ export function OrderPanel({
       </div>
 
       <div className="p-3">
+        {/*
+          Quantity, with presets and a typeable field.
+
+          A round allows one action, so the size chosen here is the whole
+          trade. With only a ±1 stepper, ten shares meant nine clicks, and
+          players were buying one share and then finding every button
+          correctly — but unexpectedly — disabled. Presets make "buy
+          several" the one-click path rather than the patient one.
+        */}
         <div className="flex items-center justify-between">
           <span className="t-label">Quantity</span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => step(-1)}
@@ -128,9 +137,17 @@ export function OrderPanel({
             >
               −
             </button>
-            <span className="t-value w-12 text-center text-sm text-ink">
-              {qty}
-            </span>
+            <input
+              type="number"
+              min={1}
+              value={qty}
+              aria-label="Quantity"
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10);
+                setQty(Number.isNaN(n) ? 1 : Math.max(1, n));
+              }}
+              className="interactive w-14 rounded-md border border-line-strong bg-surface-2 py-1 text-center font-mono text-sm tabular-nums text-ink outline-none focus:border-accent"
+            />
             <button
               type="button"
               onClick={() => step(1)}
@@ -140,6 +157,36 @@ export function OrderPanel({
               +
             </button>
           </div>
+        </div>
+
+        <div className="mt-2 grid grid-cols-4 gap-1.5">
+          {([1, 5, 10, "Max"] as const).map((preset) => {
+            /*
+             * "Max" means the most you could buy — that is the side this
+             * control exists for. A fixed preset is offered only when some
+             * side can actually fill it, so a preset never sets a size that
+             * leaves all three buttons dead.
+             */
+            const ceiling = Math.max(maxBuy, held, maxShort);
+            const value = preset === "Max" ? Math.max(1, maxBuy) : preset;
+            const usable = preset === "Max" ? maxBuy > 0 : preset <= ceiling;
+            return (
+              <button
+                key={String(preset)}
+                type="button"
+                disabled={!usable}
+                onClick={() => setQty(value)}
+                title={preset === "Max" ? `Buy up to ${maxBuy} shares` : undefined}
+                className={`interactive rounded-md border py-1 text-[0.6875rem] font-medium ${
+                  qty === value
+                    ? "border-accent bg-accent-soft text-accent"
+                    : "border-line-strong text-ink-soft hover:bg-surface-2 hover:text-ink"
+                } disabled:cursor-not-allowed disabled:opacity-35`}
+              >
+                {preset}
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-2.5 flex items-center justify-between border-t border-line pt-2.5">
@@ -189,6 +236,19 @@ export function OrderPanel({
         >
           Pass this round
         </button>
+
+        {/* While trading is open, the buttons can still be dead because the
+            SIZE is wrong rather than the moment. Say which, so "Buy doesn't
+            work" has an answer on screen instead of in the rules. */}
+        {tradingOpen && (
+          <p className="mt-2 text-center text-[0.625rem] text-ink-faint">
+            {qty > maxBuy && qty > held && qty > maxShort
+              ? `Too large — you can buy ${maxBuy}, sell ${held}, short ${maxShort}.`
+              : qty > maxBuy
+                ? `Not enough cash to buy ${qty} — max ${maxBuy}.`
+                : "One action per round — set your quantity first."}
+          </p>
+        )}
 
         {/* Say why the buttons are off — a dead control with no reason is
             indistinguishable from a broken one. */}

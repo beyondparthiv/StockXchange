@@ -34,7 +34,18 @@ export function applyOrder(
   side: TradeSide,
   ticker: string,
   qty: number,
+  /**
+   * Double Trade: this one order may go up to 2× the affordable size, with
+   * the shortfall borrowed.
+   *
+   * The multiplier has to reach this far because the cap and the fill are
+   * decided here. The order panel was doubling its own displayed cap while
+   * this function kept the ordinary one, so the card enabled a Buy button
+   * on an order that was then rejected — and the card never did anything.
+   */
+  opts: { buyMultiplier?: number } = {},
 ): OrderResult {
+  const buyMultiplier = Math.max(1, opts.buyMultiplier ?? 1);
   const player = state.players.find((p) => p.id === playerId);
   const quote = state.quotes.find((q) => q.ticker === ticker);
 
@@ -56,7 +67,7 @@ export function applyOrder(
 
   const held = sharesHeld(player, ticker);
 
-  if (side === "buy" && qty > maxAffordable(state, player, ticker)) {
+  if (side === "buy" && qty > maxAffordable(state, player, ticker) * buyMultiplier) {
     return { state, filled: null, rejected: "Not enough cash" };
   }
   // Sell closes a long only. Going past zero is a short, which is a
@@ -114,9 +125,19 @@ export function applyOrder(
           .filter((h) => h.shares !== 0)
       : [...p.holdings, { ticker, shares: after, avgCost }];
 
+    /*
+     * Cash never goes negative. A Double Trade that spends past the balance
+     * borrows the shortfall, the same debt the Quick Loan card creates, so
+     * net worth (cash + holdings − debt) still tells the truth and the
+     * wallet does not display a negative balance.
+     */
+    const cashAfter = p.cash + cashDelta;
+    const shortfall = cashAfter < 0 ? -cashAfter : 0;
+
     return {
       ...p,
-      cash: p.cash + cashDelta,
+      cash: cashAfter + shortfall,
+      debt: (p.debt ?? 0) + shortfall,
       actedThisRound: true,
       holdings,
     };
