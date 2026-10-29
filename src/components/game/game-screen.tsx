@@ -348,11 +348,30 @@ export function GameScreen({
 
       if (isGuest && live && meId) {
         /*
-         * A guest posts an intent and waits. Applying it locally would show
-         * a fill that the host might reject, and the next pushed state
-         * would silently undo it — worse than waiting a moment.
+         * A guest posts an intent to the host AND applies it locally.
+         *
+         * The local copy used to be left alone, on the reasoning that a
+         * fill the host might reject would be silently undone. That was
+         * tolerable while a round allowed one order; now that a round is an
+         * open window it is not, because the guest's wallet would never
+         * move and every further order that round would be sized against
+         * stale cash — they would happily submit ten buys they cannot
+         * afford and have nine refused at settlement.
+         *
+         * Applying locally is safe here: prices are fixed for the duration
+         * of a round, and no other player's order touches this player's
+         * cash or holdings. The host replays these same orders through the
+         * same applyOrder in submission order, so it reaches the same
+         * numbers; its push at settlement remains authoritative either way.
          */
         const cur = stateRef.current;
+        const res = applyOrder(cur, cur.meId, side, ticker, qty, {
+          buyMultiplier: doubleTrade ? 2 : 1,
+        });
+        if (!res.filled) {
+          pushToast(res.rejected ?? "Order rejected", "sell");
+          return;
+        }
         void submitLiveOrder(
           live.roomId,
           meId,
@@ -362,13 +381,9 @@ export function GameScreen({
           ticker,
           qty,
         );
-        setState((prev) => ({
-          ...prev,
-          players: prev.players.map((p) =>
-            p.id === prev.meId ? { ...p, actedThisRound: true } : p,
-          ),
-        }));
-        pushToast(`Order placed: ${verb} ${qty} ${ticker}`, side);
+        setState(res.state);
+        if (doubleTrade) setDoubleTrade(false);
+        pushToast(`You ${verb} ${qty} ${ticker}`, side);
         return;
       }
 
@@ -642,27 +657,6 @@ export function GameScreen({
     },
     [ensureGameId, selected, pushToast],
   );
-
-  const pass = useCallback(() => {
-    if (isGuest && live && meId) {
-      const cur = stateRef.current;
-      void submitLiveOrder(
-        live.roomId,
-        meId,
-        cur.day,
-        cur.round,
-        "pass",
-        null,
-        0,
-      );
-    }
-    setState((prev) => ({
-      ...prev,
-      players: prev.players.map((p) =>
-        p.id === prev.meId ? { ...p, actedThisRound: true } : p,
-      ),
-    }));
-  }, [isGuest, live, meId]);
 
 
   /*
@@ -998,7 +992,6 @@ export function GameScreen({
               state={state}
               ticker={selected}
               onSubmit={submitOrder}
-              onPass={pass}
               doubleTrade={doubleTrade}
             />
             <Wallet state={state} />

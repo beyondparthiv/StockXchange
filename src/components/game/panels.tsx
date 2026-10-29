@@ -216,7 +216,7 @@ export function Leaderboard({
               </span>
               {p.actedThisRound && (
                 <span
-                  title="Acted this round"
+                  title="Has traded this round"
                   className="h-1.5 w-1.5 shrink-0 rounded-full bg-up"
                 />
               )}

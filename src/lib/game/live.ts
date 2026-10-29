@@ -101,11 +101,12 @@ export function subscribeLiveState(
 }
 
 /**
- * Post this player's action for the round.
+ * Post one of this player's orders for the round.
  *
- * The unique constraint on (room, user, day, round) means a second
- * submission is rejected by the database rather than by hoping the client
- * behaves — one action per round holds even against a tampered client.
+ * A round is an open window, so a player may post many of these. What
+ * stops a tampered client is not a row limit but `applyOrder`, which the
+ * host runs over every row at settlement and which checks affordability,
+ * ownership and collateral on each one.
  */
 export async function submitLiveOrder(
   roomId: string,
@@ -126,13 +127,17 @@ export async function submitLiveOrder(
     ticker,
     qty,
   });
-  // 23505 is unique_violation: the player already acted this round. That is
-  // the rule working, not a failure worth surfacing as an error.
-  if (error && !error.message.includes("duplicate")) return error.message;
-  return null;
+  return error?.message ?? null;
 }
 
-/** Every order posted for a given round. Host only, at settlement. */
+/**
+ * Every order posted for a given round. Host only, at settlement.
+ *
+ * Sorted by submission time, because a player may now post several orders
+ * in a round and they only make sense in sequence — a buy funded by an
+ * earlier sell has to be applied after it, or it is refused for a reason
+ * the player could not have seen.
+ */
 export async function fetchRoundOrders(
   roomId: string,
   day: number,
@@ -144,7 +149,8 @@ export async function fetchRoundOrders(
     .select("user_id, side, ticker, qty")
     .eq("room_id", roomId)
     .eq("day", day)
-    .eq("round", round);
+    .eq("round", round)
+    .order("created_at", { ascending: true });
   return (data as PendingOrder[]) ?? [];
 }
 

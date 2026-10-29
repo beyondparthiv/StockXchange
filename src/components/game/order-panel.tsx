@@ -32,13 +32,11 @@ export function OrderPanel({
   state,
   ticker,
   onSubmit,
-  onPass,
   doubleTrade = false,
 }: {
   state: GameState;
   ticker: string;
   onSubmit: (side: TradeSide, ticker: string, qty: number) => void;
-  onPass: () => void;
   /** Double Trade card armed: the affordable cap is doubled for one order. */
   doubleTrade?: boolean;
 }) {
@@ -59,8 +57,10 @@ export function OrderPanel({
   const shorted = sharesShorted(player, ticker);
   const maxShort = maxShortable(state, player, ticker);
   const frozen = quote?.frozen ?? false;
-  const acted = player.actedThisRound;
-  const tradingOpen = canTrade(state.phase) && !frozen && !acted;
+  // `actedThisRound` now records that a player has traded, for the
+  // leaderboard badge — it no longer closes the panel. The window stays
+  // open for as many orders as the clock and the wallet allow.
+  const tradingOpen = canTrade(state.phase) && !frozen;
 
   const total = qty * price;
   const canBuy = tradingOpen && qty > 0 && qty <= maxBuy;
@@ -228,14 +228,9 @@ export function OrderPanel({
           </span>
         </button>
 
-        <button
-          type="button"
-          onClick={onPass}
-          disabled={!canTrade(state.phase) || acted}
-          className="interactive mt-1.5 w-full rounded-md border border-line-strong py-1.5 text-xs font-medium text-ink-soft hover:bg-surface-2 hover:text-ink disabled:opacity-35"
-        >
-          Pass this round
-        </button>
+        {/* "Pass this round" is gone with the one-action rule: it existed to
+            spend your single action on nothing. Sitting out is now just not
+            clicking anything until the clock runs out. */}
 
         {/* While trading is open, the buttons can still be dead because the
             SIZE is wrong rather than the moment. Say which, so "Buy doesn't
@@ -246,23 +241,21 @@ export function OrderPanel({
               ? `Too large — you can buy ${maxBuy}, sell ${held}, short ${maxShort}.`
               : qty > maxBuy
                 ? `Not enough cash to buy ${qty} — max ${maxBuy}.`
-                : "One action per round — set your quantity first."}
+                : "Trade as often as you like until the round closes."}
           </p>
         )}
 
         {/* Say why the buttons are off — a dead control with no reason is
             indistinguishable from a broken one. */}
-        {(frozen || acted || !canTrade(state.phase)) && (
+        {(frozen || !canTrade(state.phase)) && (
           <p className="mt-2 text-center text-[0.6875rem] text-ink-faint">
             {frozen
               ? `Trading is frozen on ${ticker} this round.`
-              : acted
-                ? "You have used your action this round."
-                : state.phase === "pre-round"
-                  ? "Cards window — trading opens shortly."
-                  : state.phase === "special-round"
-                    ? "Special round — cards only."
-                    : "Trading is closed."}
+              : state.phase === "pre-round"
+                ? "Cards window — trading opens shortly."
+                : state.phase === "special-round"
+                  ? "Special round — cards only."
+                  : "Trading is closed."}
           </p>
         )}
       </div>

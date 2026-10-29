@@ -55,12 +55,15 @@ export function applyOrder(
   if (!canTrade(state.phase)) {
     return { state, filled: null, rejected: "Trading is closed" };
   }
-  // One action per round — an order or a pass. A round is meant to be a
-  // decision, not a shopping trip, so the second order is refused rather
-  // than silently queued.
-  if (player.actedThisRound) {
-    return { state, filled: null, rejected: "You have already acted this round" };
-  }
+  /*
+   * A round is a trading window, not a single action.
+   *
+   * It used to allow one order per player per round, which made the round
+   * timer pointless: you spent the action in the first second and then
+   * watched a dead panel until the clock ran out. Trade as often as you
+   * like while the window is open — cash, holdings and collateral are the
+   * real limits, and they are checked on every order below.
+   */
 
   const price = priceOf(state, ticker);
   const cost = price * qty;
